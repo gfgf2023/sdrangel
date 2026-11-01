@@ -16,6 +16,7 @@
 ///////////////////////////////////////////////////////////////////////////////////
 
 #include <QUdpSocket>
+#include <QVariant>
 #include <QDebug>
 #include <algorithm>
 #include <cstring>
