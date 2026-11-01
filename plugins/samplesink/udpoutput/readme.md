@@ -86,3 +86,21 @@ In GNU Radio Companion (GRC):
 9. **MTU/Size**: UDP packet payload size in bytes.
 10. **Gain**: Digital output gain slider and percentage indicator.
 11. **Spectrum View**: Real-time spectrum analysis of the transmitted baseband signal.
+
+---
+
+## High Sample Rate Streaming (e.g. 2 MS/s and higher)
+
+When streaming UDP at 2 MS/s or above over a network (e.g. 4 MB/s for 8-bit, 16 MB/s for Float32):
+1. **Socket Buffer (`SO_RCVBUF`) in GNU Radio / OS**:
+   - The sender (SDRangel) uses an 8 MB kernel socket send buffer.
+   - On Linux systems running GNU Radio, increase the kernel UDP receive buffer to prevent packet drops:
+     ```bash
+     sudo sysctl -w net.core.rmem_max=16777216
+     sudo sysctl -w net.core.rmem_default=4194304
+     ```
+2. **Bandwidth Considerations**:
+   - `Complex Float32` @ 2 MS/s requires ~128 Mbps (best over wired Gigabit Ethernet or localhost `127.0.0.1`).
+   - `S8 Byte` @ 2 MS/s requires only ~32 Mbps, ideal for Wi-Fi or lower bandwidth connections.
+3. **Payload Alignment**:
+   - Datagram payloads are automatically aligned to complex sample boundaries (e.g., multiples of 8 bytes for Float, 4 for S16, 2 for S8, 6 for S24), ensuring no split IQ samples.

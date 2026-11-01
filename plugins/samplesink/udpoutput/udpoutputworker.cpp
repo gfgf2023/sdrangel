@@ -43,7 +43,7 @@ UDPOutputWorker::UDPOutputWorker(SampleSourceFifo* sampleFifo, QObject* parent) 
     m_buf(nullptr),
     m_spectrumSink(nullptr)
 {
-    m_payloadBuf.reserve(65536);
+    m_payloadBuf.reserve(4 * 1024 * 1024);
     setSamplerate(m_samplerate);
 }
 
@@ -68,7 +68,10 @@ void UDPOutputWorker::startWork()
     if (!m_udpSocket) {
         m_udpSocket = new QUdpSocket(this);
     }
+    // Set socket send buffer to 8 MB to accommodate high sample rates without kernel packet drops
+    m_udpSocket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 8 * 1024 * 1024);
     m_payloadBuf.clear();
+    m_payloadBuf.reserve(4 * 1024 * 1024);
     m_elapsedTimer.start();
     m_running = true;
 }
@@ -351,20 +354,47 @@ void UDPOutputWorker::convertAndSend(int16_t *buf, unsigned int nbComplexSamples
     }
     }
 
-    // Transmit completed datagrams
-    std::size_t payloadSize = m_udpPayloadSize;
-    while (m_payloadBuf.size() >= payloadSize)
+    // Determine sample size in bytes to align datagrams to complex sample boundaries
+    std::size_t sampleBytes = 2;
+    switch (m_sampleFormat)
     {
-        qint64 sent = m_udpSocket->writeDatagram(m_payloadBuf.data(), (qint64) payloadSize, m_destAddress, m_destPort);
-        if (sent < 0) {
-            // Socket write failed, clear to prevent memory inflation
-            m_payloadBuf.clear();
-            break;
-        }
-        m_payloadBuf.erase(m_payloadBuf.begin(), m_payloadBuf.begin() + payloadSize);
+    case UDPOutputSettings::FormatComplexFloat: sampleBytes = 8; break;
+    case UDPOutputSettings::FormatIQ16:          sampleBytes = 4; break;
+    case UDPOutputSettings::FormatIQ8:           sampleBytes = 2; break;
+    case UDPOutputSettings::FormatIQ24:          sampleBytes = 6; break;
     }
 
-    if (m_payloadBuf.size() > 65536) {
+    std::size_t payloadSize = (m_udpPayloadSize / sampleBytes) * sampleBytes;
+    if (payloadSize == 0) {
+        payloadSize = sampleBytes;
+    }
+
+    // Transmit completed datagrams using index offset (O(1) per packet, zero repeated vector::erase memmove)
+    std::size_t offset = 0;
+    while (m_payloadBuf.size() - offset >= payloadSize)
+    {
+        qint64 sent = m_udpSocket->writeDatagram(
+            m_payloadBuf.data() + offset,
+            (qint64) payloadSize,
+            m_destAddress,
+            m_destPort
+        );
+
+        if (sent < 0) {
+            // Socket send buffer full (EWOULDBLOCK) or transient network congestion:
+            // Stop sending in this tick, preserve remaining unwritten data for the next tick!
+            break;
+        }
+        offset += payloadSize;
+    }
+
+    // Single erase to shift only the unwritten remainder (< payloadSize)
+    if (offset > 0) {
+        m_payloadBuf.erase(m_payloadBuf.begin(), m_payloadBuf.begin() + offset);
+    }
+
+    // Drop oldest data only if buffer grows excessively large (e.g. > 16 MB, indicating destination unreachable)
+    if (m_payloadBuf.size() > 16 * 1024 * 1024) {
         m_payloadBuf.clear();
     }
 }
