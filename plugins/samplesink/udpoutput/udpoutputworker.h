@@ -24,8 +24,12 @@
 #include <QTimer>
 #include <QElapsedTimer>
 #include <QHostAddress>
+#include <QVariant>
 #include <vector>
 #include <stdint.h>
+#include <atomic>
+#include <chrono>
+#include <thread>
 
 #include "dsp/interpolators.h"
 #include "util/incrementalvector.h"
@@ -75,7 +79,7 @@ private:
     };
 #pragma pack(pop)
 
-    volatile bool m_running;
+    std::atomic<bool> m_running;
 
     SampleSourceFifo* m_sampleFifo;
     QUdpSocket* m_udpSocket;
@@ -100,6 +104,7 @@ private:
     BasebandSampleSink* m_spectrumSink;
     IncrementalVector<Sample> m_samplesVector;
 
+    void runLoop();
     void callbackPart(SampleVector& data, unsigned int iBegin, unsigned int iEnd);
     void feedSpectrum(int16_t *buf, unsigned int bufSize);
     void convertAndSend(int16_t *buf, unsigned int nbComplexSamples);

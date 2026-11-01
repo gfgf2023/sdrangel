@@ -84,10 +84,13 @@ bool UDPOutput::start()
     m_worker->setSampleFormat(m_settings.m_sampleFormat);
     m_worker->setUDPPayloadSize(m_settings.m_udpPayloadSize);
     m_worker->setGain(m_settings.m_gain);
-    m_worker->connectTimer(m_masterTimer);
 
     m_workerThread->start();
     m_running = true;
+
+    // Notify DSP engine and baseband channel modulators of active sample rate
+    auto *notif = new DSPSignalNotification(m_settings.m_sampleRate, m_settings.m_centerFrequency);
+    m_deviceAPI->getDeviceEngineInputMessageQueue()->push(notif);
 
     qDebug() << "UDPOutput::start: started";
     return true;

@@ -70,22 +70,19 @@ void UDPOutputWorker::startWork()
         m_udpSocket = new QUdpSocket(this);
     }
     // Set socket send buffer to 8 MB to accommodate high sample rates without kernel packet drops
-    m_udpSocket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, 8 * 1024 * 1024);
+    m_udpSocket->setSocketOption(QAbstractSocket::SendBufferSizeSocketOption, QVariant(8 * 1024 * 1024));
     m_payloadBuf.clear();
-    m_payloadBuf.reserve(4 * 1024 * 1024);
-    m_elapsedTimer.start();
+    m_payloadBuf.reserve(1024 * 1024);
     m_running = true;
+
+    // Run continuous, micro-paced streaming loop in worker thread (eliminates 50ms GUI timer microbursts)
+    runLoop();
 }
 
 void UDPOutputWorker::stopWork()
 {
     qDebug() << "UDPOutputWorker::stopWork";
     m_running = false;
-    m_payloadBuf.clear();
-    if (m_udpSocket) {
-        delete m_udpSocket;
-        m_udpSocket = nullptr;
-    }
 }
 
 void UDPOutputWorker::setSamplerate(int samplerate)
@@ -174,33 +171,86 @@ void UDPOutputWorker::setGain(float gain)
 
 void UDPOutputWorker::connectTimer(const QTimer& timer)
 {
-    connect(&timer, &QTimer::timeout, this, &UDPOutputWorker::tick);
+    (void) timer;
 }
 
 void UDPOutputWorker::tick()
 {
-    if (m_running && m_sampleFifo)
+    // No-op: sample streaming is driven continuously by runLoop()
+}
+
+void UDPOutputWorker::runLoop()
+{
+    using clock = std::chrono::steady_clock;
+    auto tStart = clock::now();
+    uint64_t totalOutputSamples = 0;
+    const uint64_t outputSampleRate = (uint64_t)m_samplerate * (1 << m_log2Interpolation);
+
+    if (outputSampleRate == 0 || !m_sampleFifo) {
+        return;
+    }
+
+    // Process in small ~2 ms chunks for smooth, gap-free streaming (eliminating 50ms microbursts)
+    uint32_t baseChunkSize = (m_samplerate * 2) / 1000;
+    if (baseChunkSize < 128) {
+        baseChunkSize = 128;
+    }
+
+    auto tLastSpectrum = clock::now();
+
+    while (m_running)
     {
-        qint64 throttlems = m_elapsedTimer.restart();
+        auto now = clock::now();
+        double elapsedSec = std::chrono::duration<double>(now - tStart).count();
+        uint64_t expectedOutputSamples = (uint64_t)(elapsedSec * outputSampleRate);
 
-        if (throttlems != m_throttlems)
+        if (totalOutputSamples <= expectedOutputSamples)
         {
-            m_throttlems = throttlems;
-            m_samplesChunkSize = (m_samplerate * (m_throttlems + (m_throttleToggle ? 1 : 0))) / 1000;
-            m_throttleToggle = !m_throttleToggle;
+            uint32_t inputChunkSize = baseChunkSize;
+
+            // Adaptive synchronization: gently lock reader rate to FIFO balance to prevent overrun/underrun
+            if (m_sampleFifo)
+            {
+                float balance = m_sampleFifo->getRWBalance();
+                if (balance < -0.05f) {
+                    inputChunkSize = (inputChunkSize * 102) / 100; // reading lags, slightly speed up
+                } else if (balance > 0.05f) {
+                    inputChunkSize = (inputChunkSize * 98) / 100; // reading leads, slightly slow down
+                }
+            }
+
+            unsigned int iPart1Begin = 0, iPart1End = 0, iPart2Begin = 0, iPart2End = 0;
+            SampleVector& data = m_sampleFifo->getData();
+            m_sampleFifo->read(inputChunkSize, iPart1Begin, iPart1End, iPart2Begin, iPart2End);
+
+            if (iPart1Begin != iPart1End) {
+                callbackPart(data, iPart1Begin, iPart1End);
+            }
+            if (iPart2Begin != iPart2End) {
+                callbackPart(data, iPart2Begin, iPart2End);
+            }
+
+            uint32_t outputSamplesProduced = inputChunkSize * (1 << m_log2Interpolation);
+            totalOutputSamples += outputSamplesProduced;
+            m_samplesCount += inputChunkSize;
+
+            // Periodically feed spectrum at ~20 fps (every 50ms) to maintain smooth UI without CPU waste
+            if (std::chrono::duration_cast<std::chrono::milliseconds>(now - tLastSpectrum).count() >= 50)
+            {
+                feedSpectrum(m_buf, 2 * outputSamplesProduced);
+                tLastSpectrum = now;
+            }
         }
-
-        unsigned int iPart1Begin, iPart1End, iPart2Begin, iPart2End;
-        SampleVector& data = m_sampleFifo->getData();
-        m_sampleFifo->read(m_samplesChunkSize, iPart1Begin, iPart1End, iPart2Begin, iPart2End);
-        m_samplesCount += m_samplesChunkSize;
-
-        if (iPart1Begin != iPart1End) {
-            callbackPart(data, iPart1Begin, iPart1End);
-        }
-
-        if (iPart2Begin != iPart2End) {
-            callbackPart(data, iPart2Begin, iPart2End);
+        else
+        {
+            // Ahead of schedule: yield or sleep briefly
+            uint64_t aheadSamples = totalOutputSamples - expectedOutputSamples;
+            double aheadSec = (double)aheadSamples / outputSampleRate;
+            if (aheadSec > 0.002) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+            } else {
+                std::this_thread::yield();
+            }
         }
     }
 }
@@ -246,7 +296,6 @@ void UDPOutputWorker::callbackPart(SampleVector& data, unsigned int iBegin, unsi
         }
     }
 
-    feedSpectrum(m_buf, 2 * nbOutputSamples);
     convertAndSend(m_buf, nbOutputSamples);
 }
 
