@@ -4,6 +4,7 @@ add_subdirectory(testsink)
 add_subdirectory(fileoutput)
 add_subdirectory(localoutput)
 add_subdirectory(audiooutput)
+add_subdirectory(udpoutput)
 
 if(ENABLE_AARONIARTSA)
     add_subdirectory(aaroniartsaoutput)
