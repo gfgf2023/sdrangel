@@ -67,6 +67,14 @@ private slots:
     void tick();
 
 private:
+#pragma pack(push, 1)
+    struct Sample16
+    {
+        int16_t m_real;
+        int16_t m_imag;
+    };
+#pragma pack(pop)
+
     volatile bool m_running;
 
     SampleSourceFifo* m_sampleFifo;

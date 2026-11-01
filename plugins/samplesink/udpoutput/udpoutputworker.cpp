@@ -252,16 +252,19 @@ void UDPOutputWorker::feedSpectrum(int16_t *buf, unsigned int bufSize)
         return;
     }
 
-    unsigned int sampleCount = bufSize / 2;
-    m_samplesVector.clear();
+    m_samplesVector.allocate(bufSize / 2);
+    Sample16 *s16Buf = (Sample16*) buf;
 
-    for (unsigned int i = 0; i < sampleCount; ++i)
-    {
-        Sample s(buf[2 * i], buf[2 * i + 1]);
-        m_samplesVector.push_back(s);
-    }
+    std::transform(
+        s16Buf,
+        s16Buf + (bufSize / 2),
+        m_samplesVector.m_vector.begin(),
+        [](Sample16 s) -> Sample {
+            return Sample{s.m_real, s.m_imag};
+        }
+    );
 
-    m_spectrumSink->feed(m_samplesVector.begin(), m_samplesVector.end(), false);
+    m_spectrumSink->feed(m_samplesVector.m_vector.begin(), m_samplesVector.m_vector.begin() + (bufSize / 2), false);
 }
 
 void UDPOutputWorker::convertAndSend(int16_t *buf, unsigned int nbComplexSamples)

@@ -482,17 +482,17 @@ S8 Byte: GNU Radio UDP Source with Type=Byte</string>
     </widget>
    </item>
    <item>
-    <widget class="MainSpectrumGUI" name="spectrumGUI" native="true">
+    <widget class="GLSpectrumGUI" name="spectrumGUI" native="true">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Preferred" vsizetype="Maximum">
+      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
        <horstretch>0</horstretch>
        <verstretch>0</verstretch>
       </sizepolicy>
      </property>
      <property name="minimumSize">
       <size>
-       <width>360</width>
-       <height>20</height>
+       <width>354</width>
+       <height>30</height>
       </size>
      </property>
     </widget>
@@ -509,16 +509,19 @@ S8 Byte: GNU Radio UDP Source with Type=Byte</string>
    <class>ValueDial</class>
    <extends>QWidget</extends>
    <header>gui/valuedial.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>GLSpectrum</class>
    <extends>QWidget</extends>
    <header>gui/glspectrum.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
-   <class>MainSpectrumGUI</class>
+   <class>GLSpectrumGUI</class>
    <extends>QWidget</extends>
-   <header>mainspectrum/mainspectrumgui.h</header>
+   <header>gui/glspectrumgui.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources>

@@ -24,6 +24,7 @@
 #include "gui/messagedialog.h"
 #include "gui/colormapper.h"
 #include "gui/glspectrum.h"
+#include "gui/glspectrumgui.h"
 #include "gui/basicdevicesettingsdialog.h"
 #include "gui/dialogpositioner.h"
 #include "mainspectrum/mainspectrumgui.h"
