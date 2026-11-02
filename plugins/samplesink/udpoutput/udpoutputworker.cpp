@@ -196,8 +196,6 @@ void UDPOutputWorker::runLoop()
         baseChunkSize = 128;
     }
 
-    auto tLastSpectrum = clock::now();
-
     while (m_running)
     {
         auto now = clock::now();
@@ -233,13 +231,6 @@ void UDPOutputWorker::runLoop()
             uint32_t outputSamplesProduced = inputChunkSize * (1 << m_log2Interpolation);
             totalOutputSamples += outputSamplesProduced;
             m_samplesCount += inputChunkSize;
-
-            // Periodically feed spectrum at ~20 fps (every 50ms) to maintain smooth UI without CPU waste
-            if (std::chrono::duration_cast<std::chrono::milliseconds>(now - tLastSpectrum).count() >= 50)
-            {
-                feedSpectrum(m_buf, 2 * outputSamplesProduced);
-                tLastSpectrum = now;
-            }
         }
         else
         {
@@ -296,6 +287,7 @@ void UDPOutputWorker::callbackPart(SampleVector& data, unsigned int iBegin, unsi
         }
     }
 
+    feedSpectrum(m_buf, 2 * nbOutputSamples);
     convertAndSend(m_buf, nbOutputSamples);
 }
 
