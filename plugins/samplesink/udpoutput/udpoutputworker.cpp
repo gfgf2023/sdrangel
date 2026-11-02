@@ -248,6 +248,15 @@ void UDPOutputWorker::runLoop()
 
 void UDPOutputWorker::callbackPart(SampleVector& data, unsigned int iBegin, unsigned int iEnd)
 {
+    // Clamp input samples to signed 16-bit range [-32767, 32767] to prevent integer overflow wraparound (32768 -> -32768)
+    for (auto it = data.begin() + iBegin; it != data.begin() + iEnd; ++it)
+    {
+        if (it->m_real > 32767) it->m_real = 32767;
+        else if (it->m_real < -32767) it->m_real = -32767;
+        if (it->m_imag > 32767) it->m_imag = 32767;
+        else if (it->m_imag < -32767) it->m_imag = -32767;
+    }
+
     SampleVector::iterator beginRead = data.begin() + iBegin;
     unsigned int chunkSize = iEnd - iBegin;
     unsigned int nbOutputSamples = chunkSize;
