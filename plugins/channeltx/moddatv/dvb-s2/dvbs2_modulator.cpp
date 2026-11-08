@@ -19,6 +19,17 @@
 
 #define CP 0x7FFF
 
+void DVBS2::polar2_64(int i, double r, double a0, double a1, double a2, double a3)
+{
+    double a[] = {a0, a1, a2, a3};
+    for (int j = 0; j < 4; ++j)
+    {
+        double phi = a[j] * M_PI;
+        m_64apsk[i + j].re = (short)((r * cos(phi)) * CP);
+        m_64apsk[i + j].im = (short)((r * sin(phi)) * CP);
+    }
+}
+
 void DVBS2::modulator_configuration()
 {
         double r0,r1,r2,r3;
@@ -222,4 +233,30 @@ void DVBS2::modulator_configuration()
         m_32apsk[30].im = (short)((r3*sin(M_PI))*CP);
         m_32apsk[31].re = (short)((r3*cos(-3*M_PI/4.0))*CP);
         m_32apsk[31].im = (short)((r3*sin(-3*M_PI/4.0))*CP);
+
+        // 64 APSK
+        // EN 302 307-2, section 5.4.5, Table 13e & 13f
+        double gamma1 = 2.4;
+        double gamma2 = 4.3;
+        double gamma3 = 7.0;
+        r1 = sqrt(64.0 / (4.0 + 12.0 * gamma1 * gamma1 + 20.0 * gamma2 * gamma2 + 28.0 * gamma3 * gamma3));
+        r2 = gamma1 * r1;
+        r3 = gamma2 * r1;
+        double r4 = gamma3 * r1;
+        polar2_64(0,  r4, 1.0 / 4,  7.0 / 4,  3.0 / 4,  5.0 / 4);
+        polar2_64(4,  r4, 13.0 / 28, 43.0 / 28, 15.0 / 28, 41.0 / 28);
+        polar2_64(8,  r4, 1.0 / 28,  55.0 / 28, 27.0 / 28, 29.0 / 28);
+        polar2_64(12, r1, 1.0 / 4,  7.0 / 4,  3.0 / 4,  5.0 / 4);
+        polar2_64(16, r4, 9.0 / 28,  47.0 / 28, 19.0 / 28, 37.0 / 28);
+        polar2_64(20, r4, 11.0 / 28, 45.0 / 28, 17.0 / 28, 39.0 / 28);
+        polar2_64(24, r3, 1.0 / 20,  39.0 / 20, 19.0 / 20, 21.0 / 20);
+        polar2_64(28, r2, 1.0 / 12,  23.0 / 12, 11.0 / 12, 13.0 / 12);
+        polar2_64(32, r4, 5.0 / 28,  51.0 / 28, 23.0 / 28, 33.0 / 28);
+        polar2_64(36, r3, 9.0 / 20,  31.0 / 20, 11.0 / 20, 29.0 / 20);
+        polar2_64(40, r4, 3.0 / 28,  53.0 / 28, 25.0 / 28, 31.0 / 28);
+        polar2_64(44, r2, 5.0 / 12,  19.0 / 12,  7.0 / 12, 17.0 / 12);
+        polar2_64(48, r3, 1.0 / 4,   7.0 / 4,  3.0 / 4,  5.0 / 4);
+        polar2_64(52, r3, 7.0 / 20,  33.0 / 20, 13.0 / 20, 27.0 / 20);
+        polar2_64(56, r3, 3.0 / 20,  37.0 / 20, 17.0 / 20, 23.0 / 20);
+        polar2_64(60, r2, 1.0 / 4,   7.0 / 4,  3.0 / 4,  5.0 / 4);
 }

@@ -117,6 +117,7 @@ private slots:
     void on_fec_currentIndexChanged(int index);
     void on_modulation_currentIndexChanged(int index);
     void on_rollOff_currentIndexChanged(int index);
+    void on_pilots_toggled(bool checked);
 
     void on_inputSelect_currentIndexChanged(int index);
     void on_imageFileDialog_clicked(bool checked);

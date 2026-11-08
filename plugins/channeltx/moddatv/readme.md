@@ -2,7 +2,7 @@
 
 <h2>Introduction</h2>
 
-This plugin can be used to transmit a digital amateur TV signal in the DVB-S or DVB-S2 standards. The plugin requires the video and audio to be transmitted to be in an MPEG transport stream.
+This plugin can be used to transmit a digital amateur TV signal in the DVB-S, DVB-S2 or DVB-S2X standards. The plugin requires the video and audio to be transmitted to be in an MPEG transport stream.
 The MPEG transport stream can either be read from a file or streamed via UDP.
 
 The MPEG transport stream must (for now) be created outside of SDRangel, using software such as ffmpeg. The MPEG transport stream can contain video compressed using codecs such as MPEG-2, h264 or h265 (HEVC).
@@ -12,6 +12,8 @@ The DATV modulator plugin just performs channel coding and modulation of the tra
 DVB-S includes: scrambling, Reed-Solomon RS(204,188,T=8) coding, convolutional interleaving (I=12), convolutional encoding (code rate=1/2, with optional puncturing to rates of 2/3, 3/4, 5/6 and 7/8) and BPSK or QPSK modulation.
 
 DVB-S2 includes: scrambling, BCH encoder, LDPC encoder, bit interleaver and QPSK, 8PSK, 16APSK or 32APSK modulation.
+
+DVB-S2X includes: scrambling, BCH encoder, LDPC encoder, bit interleaver and QPSK, 8PSK, 16APSK, 32APSK or 64APSK modulation, with lower roll-off factors (0.05, 0.10, 0.15) and extended PLHEADER signalling.
 
 <h2>Interface</h2>
 
@@ -55,7 +57,7 @@ Use this button to toggle mute for this channel. The radio waves on the icon are
 
 <h3>A.1: Standard</h3>
 
-Select the DVB standard to use for channel coding and modulation. This can be either DVB-S or DVB-S2.
+Select the DVB standard to use for channel coding and modulation. This can be either DVB-S, DVB-S2 or DVB-S2X.
 
 <h3>A.2: Symbol rate</h3>
 
@@ -80,16 +82,21 @@ When using UDP, the packet size should be an integer multiple of the MPEG transp
 Forward error correction code rate. This controls the number of bits sent to help the receiver to correct errors.
 A code rate of 1/2 has the highest overhead (corresponding to a lower data rate), but allows the most amount of errors to be correct.
 7/8 (DVB-S) or 9/10 (DVB-S2) has the least overhead (corresponding to higher data rates), but will allow the fewest amount of errors to be corrected.
+For DVB-S2X 64APSK, code rates 4/5 and 5/6 are available.
 
 <h3>A.6: Modulation</h3>
 
-Select the modulation to be used. For DVB-S, this can either be BPSK or QPSK. For DVB-S2, this can be QPSK, 8PSK, 16APSK or 32PSK.
+Select the modulation to be used. For DVB-S, this can either be BPSK or QPSK. For DVB-S2, this can be QPSK, 8PSK, 16APSK or 32APSK. For DVB-S2X, 64APSK is additionally supported.
 
-BPSK transmits a single bit per symbol, whereas QPSK transmits two bits per symbol, so has twice the bitrate. Similar, 8PSK is 3 bits per symbol, 16APSK 4 and 32PSK 5. BPSK, QPSK and 8PSK only modulate phase. 16APSK and 32APKS modulate both phase and amplitude.
+BPSK transmits a single bit per symbol, whereas QPSK transmits two bits per symbol, so has twice the bitrate. Similar, 8PSK is 3 bits per symbol, 16APSK 4, 32APSK 5, and 64APSK 6. BPSK, QPSK and 8PSK only modulate phase. 16APSK, 32APSK and 64APSK modulate both phase and amplitude.
 
 <h3>A.7: Roll off</h3>
 
-Roll-off for the root raised cosine filter. For DVB-S, this should be 0.35. For DVB-S2 this can be 0.2, 0.25 or 0.35.
+Roll-off for the root raised cosine filter. For DVB-S, this should be 0.35. For DVB-S2 this can be 0.2, 0.25 or 0.35. For DVB-S2X, tighter roll-offs of 0.05, 0.10 and 0.15 are also supported.
+
+<h3>A.8: Pilots</h3>
+
+Enable pilot symbols insertion for DVB-S2 and DVB-S2X. When enabled, 36 pilot symbols are inserted every 16 slots (1440 symbols) to assist receiver carrier and phase synchronization (recommended for higher-order modulations like 16APSK, 32APSK, and 64APSK, or low SNR channels), at the cost of approximately 2.4% overhead. Disabled for DVB-S.
 
 <h3>6: UDP IP address</h3>
 

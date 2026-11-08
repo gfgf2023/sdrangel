@@ -36,6 +36,7 @@ typedef struct{
 class DVBS2 : public DVB2{
 private:
         const static unsigned long g[6];
+        const static unsigned long g_s2x_row0;
         const static int ph_scram_tab[64];
         const static int ph_sync_seq[26];
         scmplx m_bpsk[2][2];
@@ -43,6 +44,7 @@ private:
         scmplx m_8psk[8];
         scmplx m_16apsk[16];
         scmplx m_32apsk[32];
+        scmplx m_64apsk[64];
         scmplx m_pl[FRAME_SIZE_NORMAL];
         scmplx m_pl_dummy[FRAME_SIZE_NORMAL];
         int m_cscram[FRAME_SIZE_NORMAL];
@@ -52,8 +54,11 @@ private:
 		int m_configured;
         double m_efficiency;
         int m_s2_config_updated;
+        void polar2_64(int i, double r, double a0, double a1, double a2, double a3);
         void b_64_7_code( unsigned char in, int *out );
-        void s2_pl_header_encode( u8 modcod, u8 type, int *out);
+        void b_64_8_code( unsigned char in, int *out );
+        void s2_pl_header_encode( u8 pls_code, int *out );
+        void s2_pl_header_encode( u8 modcod, u8 type, int *out );
         void modulator_configuration(void);
         void s2_interleave( void );
         void s2_pl_header_create(void);

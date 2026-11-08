@@ -19,6 +19,8 @@
 // Modcod error correction
 //
 
+const unsigned long DVBS2::g_s2x_row0 = 0x90AC2DDD;
+
 const unsigned long DVBS2::g[6]=
 {
     0x55555555,0x33333333,0x0F0F0F0F,0x00FF00FF,0x0000FFFF,0xFFFFFFFF

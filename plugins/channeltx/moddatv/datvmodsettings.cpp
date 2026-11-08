@@ -24,7 +24,7 @@
 #include "dvb-s/dvb-s.h"
 
 const QStringList DATVModSettings::m_codeRateStrings = {"1/2", "2/3", "3/4", "5/6", "7/8", "4/5", "8/9", "9/10", "1/4", "1/3", "2/5", "3/5"};
-const QStringList DATVModSettings::m_modulationStrings = {"BPSK", "QPSK", "8PSK", "16APSK", "32APSK"};
+const QStringList DATVModSettings::m_modulationStrings = {"BPSK", "QPSK", "8PSK", "16APSK", "32APSK", "64APSK"};
 const QStringList DATVModSettings::m_codecStrings = {"HEVC", "H264"};
 
 DATVModSettings::DATVModSettings() :
@@ -43,6 +43,7 @@ void DATVModSettings::resetToDefaults()
     m_fec = FEC12;
     m_symbolRate = 250000;
     m_rollOff = 0.35f;
+    m_pilots = false;
     m_source = SourceFile;
     m_imageFileName = "";
     m_imageOverlayTimestamp = false;
@@ -78,6 +79,7 @@ QByteArray DATVModSettings::serialize() const
     s.writeS32(5, (int) m_fec);
     s.writeS32(6, m_symbolRate);
     s.writeReal(7, m_rollOff);
+    s.writeBool(8, m_pilots);
     s.writeS32(10, (int) m_source);
     s.writeString(11, m_tsFileName);
     s.writeBool(12, m_tsFilePlayLoop);
@@ -137,6 +139,7 @@ bool DATVModSettings::deserialize(const QByteArray& data)
         d.readS32(5, (int *) &m_fec, (int)FEC12);
         d.readS32(6, &m_symbolRate, 250000);
         d.readReal(7, &m_rollOff, 0.35f);
+        d.readBool(8, &m_pilots, false);
         d.readS32(10, (int *)&m_source, (int)SourceFile);
         d.readString(11, &m_tsFileName);
         d.readBool(12, &m_tsFilePlayLoop, false);
@@ -251,6 +254,9 @@ int DATVModSettings::getDVBSDataBitrate() const
     case DATVModSettings::APSK32:
         bitsPerSymbol = 5.0f;
         break;
+    case DATVModSettings::APSK64:
+        bitsPerSymbol = 6.0f;
+        break;
     default:
         qWarning("DATVModSettings::getDVBSDataBitrate: Unsupported modulation");
         return 0;
@@ -356,7 +362,16 @@ int DATVModSettings::getDVBSDataBitrate() const
         fecFactor = (uncodedBlockSize-bbHeaderBits)/(float)codedBlockSize;
         float symbolsPerFrame = codedBlockSize/bitsPerSymbol;
         // 90 symbols for PL header
-        plFactor = symbolsPerFrame / (symbolsPerFrame + 90.0f);
+        // 1 pilot block (36 symbols) every 16 blocks (of 90 symbols), no pilot at the end
+        float pilotSymbols = 0.0f;
+        if (m_pilots) {
+            int blocks = (int)(symbolsPerFrame / 90.0f);
+            int numPilotBlocks = (blocks - 1) / 16;
+            if (numPilotBlocks > 0) {
+                pilotSymbols = numPilotBlocks * 36.0f;
+            }
+        }
+        plFactor = symbolsPerFrame / (symbolsPerFrame + 90.0f + pilotSymbols);
     }
 
     return std::round(m_symbolRate * bitsPerSymbol * fecFactor * plFactor);
@@ -384,6 +399,9 @@ void DATVModSettings::applySettings(const QStringList& settingsKeys, const DATVM
     }
     if (settingsKeys.contains("rollOff")) {
         m_rollOff = settings.m_rollOff;
+    }
+    if (settingsKeys.contains("pilots")) {
+        m_pilots = settings.m_pilots;
     }
     if (settingsKeys.contains("source")) {
         m_source = settings.m_source;
@@ -480,6 +498,9 @@ QString DATVModSettings::getDebugString(const QStringList& settingsKeys, bool fo
     }
     if (settingsKeys.contains("rollOff") || force) {
         ostr << " m_rollOff: " << m_rollOff;
+    }
+    if (settingsKeys.contains("pilots") || force) {
+        ostr << " m_pilots: " << m_pilots;
     }
     if (settingsKeys.contains("source") || force) {
         ostr << " m_source: " << m_source;

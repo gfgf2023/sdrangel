@@ -99,6 +99,9 @@ int DATVModSource::getDVBSDataBitrate(const DATVModSettings& settings) const
     case DATVModSettings::APSK32:
         bitsPerSymbol = 5.0f;
         break;
+    case DATVModSettings::APSK64:
+        bitsPerSymbol = 6.0f;
+        break;
     default:
         qDebug() << "DATVModSource::getDVBSDataBitrate: Unsupported modulation";
         return 0;
@@ -834,11 +837,12 @@ void DATVModSource::applySettings(const QStringList& settingsKeys, const DATVMod
         else
         {
             m_dvbs2Format.frame_type = FRAME_NORMAL;
-            m_dvbs2Format.pilots = 0; // PILOTS_OFF;
+            m_dvbs2Format.pilots = settings.m_pilots ? PILOTS_ON : PILOTS_OFF;
             m_dvbs2Format.dummy_frame = 0;
             m_dvbs2Format.null_deletion = 0;
             m_dvbs2Format.intface = M_ACM;  // Unused?
             m_dvbs2Format.broadcasting = 1;
+            m_dvbs2Format.s2x = (settings.m_standard == DATVModSettings::DVB_S2X);
 
             switch (settings.m_modulation)
             {
@@ -854,8 +858,11 @@ void DATVModSource::applySettings(const QStringList& settingsKeys, const DATVMod
             case DATVModSettings::APSK32:
                 m_dvbs2Format.constellation = M_32APSK;
                 break;
+            case DATVModSettings::APSK64:
+                m_dvbs2Format.constellation = M_64APSK;
+                break;
             default:
-                qDebug() << "DATVModSource::applySettings: Unsupported modulation for DVB-S2";
+                qDebug() << "DATVModSource::applySettings: Unsupported modulation for DVB-S2/S2X";
                 break;
             }
 
@@ -903,6 +910,14 @@ void DATVModSource::applySettings(const QStringList& settingsKeys, const DATVMod
                 m_dvbs2Format.roll_off = RO_0_35;
             else if (settings.m_rollOff == 0.25f)
                 m_dvbs2Format.roll_off = RO_0_25;
+            else if (settings.m_rollOff == 0.20f)
+                m_dvbs2Format.roll_off = RO_0_20;
+            else if (settings.m_rollOff == 0.15f)
+                m_dvbs2Format.roll_off = RO_0_15;
+            else if (settings.m_rollOff == 0.10f)
+                m_dvbs2Format.roll_off = RO_0_10;
+            else if (settings.m_rollOff == 0.05f)
+                m_dvbs2Format.roll_off = RO_0_05;
             else
                 m_dvbs2Format.roll_off = RO_0_20;
 

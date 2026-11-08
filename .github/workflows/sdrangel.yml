@@ -9,6 +9,7 @@ on:
       - mac_ci
       - fix-*
       - feature-*
+      - add_dvbs2x_sdrangel
     tags-ignore:
       - 'v*'
   pull_request:

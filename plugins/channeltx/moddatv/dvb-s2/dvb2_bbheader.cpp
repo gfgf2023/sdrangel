@@ -92,8 +92,9 @@ void DVB2::add_bbheader( void )
     m_frame[3] = h->ccm_acm;
     m_frame[4] = h->issyi&1;
     m_frame[5] = h->npd&1;
-    m_frame[6] = h->ro>>1;
-    m_frame[7] = h->ro&1;
+    int ro_bits = (h->ro > 3) ? RO_RESERVED : h->ro;
+    m_frame[6] = ro_bits>>1;
+    m_frame[7] = ro_bits&1;
     m_frame_offset_bits = 8;
     if( h->sis_mis == SIS_MIS_MULTIPLE )
     {

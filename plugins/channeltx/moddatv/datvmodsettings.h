@@ -37,7 +37,8 @@ struct DATVModSettings
     enum DVBStandard
     {
         DVB_S,
-        DVB_S2
+        DVB_S2,
+        DVB_S2X
     };
 
     enum DATVModulation
@@ -46,7 +47,8 @@ struct DATVModSettings
         QPSK,
         PSK8,   // DVB-S2
         APSK16, // DVB-S2
-        APSK32  // DVB-S2
+        APSK32, // DVB-S2
+        APSK64  // DVB-S2X
     };
     static const QStringList m_modulationStrings;
 
@@ -82,6 +84,7 @@ struct DATVModSettings
     DATVCodeRate m_fec;                         //!< FEC code rate
     int m_symbolRate;                           //!< Symbol rate in symbols per second
     float m_rollOff;                            //!< 0.35, 0.25, 0.2
+    bool m_pilots;                              //!< Enable pilots (DVB-S2 / DVB-S2X)
 
     DATVSource m_source;                        //!< Source of transport stream
 

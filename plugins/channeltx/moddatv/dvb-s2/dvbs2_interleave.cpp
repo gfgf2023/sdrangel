@@ -101,4 +101,24 @@ void DVBS2::s2_interleave( void )
 
         return;
     }
+
+    if( m_format[0].constellation == M_64APSK )
+    {
+        rows = frame_size/6;
+        m_payload_symbols = rows;
+        Bit *c1,*c2,*c3,*c4,*c5,*c6;
+        // EN 302 307-2 Table 9a bit interleaver pattern 305214
+        c1 = &m_frame[rows*3];
+        c2 = &m_frame[0];
+        c3 = &m_frame[rows*5];
+        c4 = &m_frame[rows*2];
+        c5 = &m_frame[rows];
+        c6 = &m_frame[rows*4];
+        for( int i = 0; i < rows; i++ )
+        {
+            m_iframe[i]  = (c1[i]<<5) | (c2[i]<<4) | (c3[i]<<3) | (c4[i]<<2) | (c5[i]<<1) | (c6[i]);
+        }
+
+        return;
+    }
 }

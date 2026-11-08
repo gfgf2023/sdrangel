@@ -257,6 +257,11 @@
           <string>DVB-S2</string>
          </property>
         </item>
+        <item>
+         <property name="text">
+          <string>DVB-S2X</string>
+         </property>
+        </item>
        </widget>
       </item>
       <item>
@@ -484,6 +489,16 @@
           <string>0.35</string>
          </property>
         </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QCheckBox" name="pilots">
+        <property name="toolTip">
+         <string>Enable pilots (DVB-S2 / DVB-S2X)</string>
+        </property>
+        <property name="text">
+         <string>Pilots</string>
+        </property>
        </widget>
       </item>
       <item>

@@ -46,6 +46,9 @@ typedef unsigned char u8;
 #define RO_0_25 1
 #define RO_0_20 2
 #define RO_RESERVED 3
+#define RO_0_15 4
+#define RO_0_10 5
+#define RO_0_05 6
 
 // Pilots
 #define PILOTS_OFF 0
@@ -112,6 +115,7 @@ typedef struct{
 #define M_8PSK   1
 #define M_16APSK 2
 #define M_32APSK 3
+#define M_64APSK 4
 //Interface
 #define M_ACM 0
 #define M_CCM 1
@@ -128,6 +132,7 @@ typedef struct{
    int null_deletion;
    int intface;
    int broadcasting;
+   int s2x;
    // Calculated information, not used by caller
    BBHeader bb_header;
    int kldpc;

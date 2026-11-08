@@ -71,6 +71,11 @@ int DVBS2::is_valid( int mod, int coderate )
         if(coderate == CR_8_9)  return 0;
         if(coderate == CR_9_10) return 0;
     }
+    if( mod == M_64APSK )
+    {
+        if(coderate == CR_4_5)  return 0;
+        if(coderate == CR_5_6)  return 0;
+    }
     return -1;
 }
 //
@@ -89,6 +94,7 @@ void DVBS2::calc_efficiency( void )
     if( m_format[1].constellation == M_8PSK )     m = 3.0;
     if( m_format[1].constellation == M_16APSK )   m = 4.0;
     if( m_format[1].constellation == M_32APSK )   m = 5.0;
+    if( m_format[1].constellation == M_64APSK )   m = 6.0;
     s = p/m;//Number of symbols per frame
     // PL header overhead
     if( m_format[1].pilots )

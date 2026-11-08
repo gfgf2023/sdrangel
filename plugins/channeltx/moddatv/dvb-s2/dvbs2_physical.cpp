@@ -16,12 +16,13 @@
 ///////////////////////////////////////////////////////////////////////////////////////
 #include "DVBS2.h"
 
-void DVBS2::b_64_7_code( unsigned char in, int *out )
+void DVBS2::b_64_8_code( unsigned char in, int *out )
 {
     unsigned long temp,bit;
 
     temp = 0;
 
+    if(in&0x80) temp ^= g_s2x_row0;
     if(in&0x40) temp ^= g[0];
     if(in&0x20) temp ^= g[1];
     if(in&0x10) temp ^= g[2];
@@ -42,6 +43,17 @@ void DVBS2::b_64_7_code( unsigned char in, int *out )
         out[m] = out[m] ^ ph_scram_tab[m];
     }
 }
+
+void DVBS2::b_64_7_code( unsigned char in, int *out )
+{
+    b_64_8_code( in & 0x7F, out );
+}
+
+void DVBS2::s2_pl_header_encode( u8 pls_code, int *out)
+{
+    b_64_8_code( pls_code, out );
+}
+
 //[MODCOD 6:2 ][TYPE 1:0 ]
 void DVBS2::s2_pl_header_encode( u8 modcod, u8 type, int *out)
 {
@@ -50,7 +62,7 @@ void DVBS2::s2_pl_header_encode( u8 modcod, u8 type, int *out)
     code = (modcod<<2) | type;
     //printf("MODCOD %d TYPE %d %d\n",modcod,type,code);
     // Add the modcod and type information and scramble it
-    b_64_7_code( code, out );
+    b_64_8_code( code, out );
 }
 void DVBS2::s2_pl_header_create(void)
 {
@@ -189,12 +201,34 @@ void DVBS2::s2_pl_header_create(void)
                 break;
         }
     }
+    int pls_code;
+    if( m_format[0].constellation == M_64APSK )
+    {
+        switch( m_format[0].code_rate )
+        {
+        case CR_4_5:
+            pls_code = 194; // EN 302 307-2 Table 17a: 64APSK 4/5
+            break;
+        case CR_5_6:
+            pls_code = 200; // EN 302 307-2 Table 17a: 64APSK 5/6
+            break;
+        default:
+            pls_code = 194;
+            break;
+        }
+        if( m_format[0].pilots ) pls_code |= 1;
+    }
+    else
+    {
+        pls_code = (modcod<<2) | type;
+    }
+
     // Now create the PL header.
     int b[90];
     // Add the sync sequence SOF
     for( int i = 0; i < 26; i++ ) b[i] = ph_sync_seq[i];
     // Add the mode and code
-    s2_pl_header_encode( modcod, type, &b[26] );
+    s2_pl_header_encode( pls_code, &b[26] );
 
     // BPSK modulate and add the header
     for( int i = 0; i < 90; i++ )
@@ -290,6 +324,29 @@ int  DVBS2::s2_pl_data_pack( void )
             for( int j = 0; j < 90; j++ )
             {
                 m_pl[n++] = m_32apsk[m_iframe[m++]&0x1F];
+            }
+            block_count = (block_count+1)%16;
+            if((block_count == 0)&&(i<blocks-1))
+            {
+                if( m_format[0].pilots )
+                {
+                    // Add pilots if needed
+                    for( int k = 0; k < 36; k++ )
+                    {
+                        m_pl[n++] = m_bpsk[0][0];
+                    }
+                }
+            }
+        }
+    }
+    // See if 64 APSK
+    if( m_format[0].constellation == M_64APSK )
+    {
+        for( int i = 0; i < blocks; i++ )
+        {
+            for( int j = 0; j < 90; j++ )
+            {
+                m_pl[n++] = m_64apsk[m_iframe[m++]&0x3F];
             }
             block_count = (block_count+1)%16;
             if((block_count == 0)&&(i<blocks-1))

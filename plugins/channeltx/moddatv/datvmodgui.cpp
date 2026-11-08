@@ -263,6 +263,8 @@ void DATVModGUI::on_dvbStandard_currentIndexChanged(int index)
 
     m_settings.m_standard = (DATVModSettings::DVBStandard) index;
 
+    ui->pilots->setEnabled(m_settings.m_standard != DATVModSettings::DVB_S);
+
     ui->rollOff->blockSignals(true);
     ui->modulation->blockSignals(true);
 
@@ -275,7 +277,7 @@ void DATVModGUI::on_dvbStandard_currentIndexChanged(int index)
         ui->modulation->addItem("BPSK");
         ui->modulation->addItem("QPSK");
     }
-    else
+    else if (m_settings.m_standard == DATVModSettings::DVB_S2)
     {
         ui->rollOff->addItem("0.20");
         ui->rollOff->addItem("0.25");
@@ -284,6 +286,20 @@ void DATVModGUI::on_dvbStandard_currentIndexChanged(int index)
         ui->modulation->addItem("8PSK");
         ui->modulation->addItem("16APSK");
         ui->modulation->addItem("32APSK");
+    }
+    else // DVB_S2X
+    {
+        ui->rollOff->addItem("0.05");
+        ui->rollOff->addItem("0.10");
+        ui->rollOff->addItem("0.15");
+        ui->rollOff->addItem("0.20");
+        ui->rollOff->addItem("0.25");
+        ui->rollOff->addItem("0.35");
+        ui->modulation->addItem("QPSK");
+        ui->modulation->addItem("8PSK");
+        ui->modulation->addItem("16APSK");
+        ui->modulation->addItem("32APSK");
+        ui->modulation->addItem("64APSK");
     }
 
     ui->rollOff->blockSignals(false);
@@ -364,6 +380,11 @@ void DATVModGUI::updateFEC()
         ui->fec->addItem("8/9");
         ui->fec->addItem("9/10");
     }
+    else if (m_settings.m_modulation == DATVModSettings::APSK64)
+    {
+        ui->fec->addItem("4/5");
+        ui->fec->addItem("5/6");
+    }
 
     ui->fec->blockSignals(false);
 
@@ -378,7 +399,7 @@ void DATVModGUI::on_modulation_currentIndexChanged(int index)
     if (m_settings.m_standard == DATVModSettings::DVB_S)
         m_settings.m_modulation = (DATVModSettings::DATVModulation) index;
     else
-        m_settings.m_modulation = (DATVModSettings::DATVModulation) (index + 1);
+        m_settings.m_modulation = DATVModSettings::mapModulation(ui->modulation->currentText());
     // The code rate can change with the modulation (as 32APSK has none below 3/4), so it's applied with it. When the
     // standard's changing, that applies them all once it's done
     const bool doApplySettings = m_doApplySettings;
@@ -394,6 +415,13 @@ void DATVModGUI::on_rollOff_currentIndexChanged(int index)
     (void) index;
     m_settings.m_rollOff = ui->rollOff->currentText().toFloat();
     applySettings(QStringList("rollOff"));
+}
+
+void DATVModGUI::on_pilots_toggled(bool checked)
+{
+    m_settings.m_pilots = checked;
+    setImageBitrate();
+    applySettings(QStringList("pilots"));
 }
 
 void DATVModGUI::on_fec_currentIndexChanged(int index)
@@ -634,6 +662,8 @@ void DATVModGUI::displaySettings()
     ui->deltaFrequency->setValue(m_settings.m_inputFrequencyOffset);
 
     ui->dvbStandard->setCurrentIndex((int) m_settings.m_standard);
+    ui->pilots->setChecked(m_settings.m_pilots);
+    ui->pilots->setEnabled(m_settings.m_standard != DATVModSettings::DVB_S);
     ui->fec->setCurrentIndex(ui->fec->findText(DATVModSettings::mapCodeRate(m_settings.m_fec)));
     ui->symbolRate->setValue(m_settings.m_symbolRate);
     ui->rollOff->setCurrentIndex(ui->rollOff->findText(QString("%1").arg(m_settings.m_rollOff, 0, 'f', 2)));
@@ -764,6 +794,7 @@ void DATVModGUI::makeUIConnections()
     QObject::connect(ui->fec, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &DATVModGUI::on_fec_currentIndexChanged);
     QObject::connect(ui->modulation, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &DATVModGUI::on_modulation_currentIndexChanged);
     QObject::connect(ui->rollOff, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &DATVModGUI::on_rollOff_currentIndexChanged);
+    QObject::connect(ui->pilots, &QCheckBox::toggled, this, &DATVModGUI::on_pilots_toggled);
     QObject::connect(ui->inputSelect, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &DATVModGUI::on_inputSelect_currentIndexChanged);
     QObject::connect(ui->tsImageDialog, &QPushButton::clicked, this, &DATVModGUI::on_imageFileDialog_clicked);
     QObject::connect(ui->tsImageTimestamp, &QCheckBox::toggled, this, &DATVModGUI::on_tsImageTimestamp_toggled);
