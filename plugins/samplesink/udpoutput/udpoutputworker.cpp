@@ -16,6 +16,9 @@
 ///////////////////////////////////////////////////////////////////////////////////
 
 #include <QUdpSocket>
+#include <QMutexLocker>
+#include <QThread>
+#include <QMetaObject>
 #include <QVariant>
 #include <QDebug>
 #include <algorithm>
@@ -28,6 +31,7 @@
 UDPOutputWorker::UDPOutputWorker(SampleSourceFifo* sampleFifo, QObject* parent) :
     QObject(parent),
     m_running(false),
+    m_stopRequested(false),
     m_sampleFifo(sampleFifo),
     m_udpSocket(nullptr),
     m_destAddress(QHostAddress::LocalHost),
@@ -65,7 +69,19 @@ UDPOutputWorker::~UDPOutputWorker()
 
 void UDPOutputWorker::startWork()
 {
-    qDebug() << "UDPOutputWorker::startWork: destination" << m_destAddress.toString() << ":" << m_destPort;
+    if (m_stopRequested.load())
+    {
+        QMetaObject::invokeMethod(QThread::currentThread(), "quit", Qt::QueuedConnection);
+        return;
+    }
+    QHostAddress destAddress;
+    uint16_t destPort;
+    {
+        QMutexLocker locker(&m_settingsMutex);
+        destAddress = m_destAddress;
+        destPort = m_destPort;
+    }
+    qDebug() << "UDPOutputWorker::startWork: destination" << destAddress.toString() << ":" << destPort;
     if (!m_udpSocket) {
         m_udpSocket = new QUdpSocket(this);
     }
@@ -77,11 +93,16 @@ void UDPOutputWorker::startWork()
 
     // Run continuous, micro-paced streaming loop in worker thread (eliminates 50ms GUI timer microbursts)
     runLoop();
+
+    if (m_stopRequested.load()) {
+        QMetaObject::invokeMethod(QThread::currentThread(), "quit", Qt::QueuedConnection);
+    }
 }
 
 void UDPOutputWorker::stopWork()
 {
     qDebug() << "UDPOutputWorker::stopWork";
+    m_stopRequested = true;
     m_running = false;
 }
 
@@ -91,13 +112,14 @@ void UDPOutputWorker::setSamplerate(int samplerate)
         return;
     }
 
+    if (m_running) {
+        qWarning() << "UDPOutputWorker::setSamplerate: ignored while worker is running";
+        return;
+    }
+
     if (samplerate != m_samplerate || !m_buf)
     {
         qDebug() << "UDPOutputWorker::setSamplerate:" << samplerate;
-        bool wasRunning = m_running;
-        if (wasRunning) {
-            stopWork();
-        }
 
         if (m_sampleFifo) {
             m_sampleFifo->resize(SampleSourceFifo::getSizePolicy(samplerate));
@@ -109,10 +131,6 @@ void UDPOutputWorker::setSamplerate(int samplerate)
         m_samplerate = samplerate;
         m_buf = new int16_t[m_samplerate * (1 << m_log2Interpolation) * 2];
         m_samplesChunkSize = (m_samplerate * m_throttlems) / 1000;
-
-        if (wasRunning) {
-            startWork();
-        }
     }
 }
 
@@ -122,50 +140,52 @@ void UDPOutputWorker::setLog2Interpolation(int log2Interpolation)
         return;
     }
 
+    if (m_running) {
+        qWarning() << "UDPOutputWorker::setLog2Interpolation: ignored while worker is running";
+        return;
+    }
+
     if (log2Interpolation != m_log2Interpolation)
     {
         qDebug() << "UDPOutputWorker::setLog2Interpolation:" << log2Interpolation;
-        bool wasRunning = m_running;
-        if (wasRunning) {
-            stopWork();
-        }
 
         if (m_buf) {
             delete[] m_buf;
         }
         m_log2Interpolation = log2Interpolation;
         m_buf = new int16_t[m_samplerate * (1 << m_log2Interpolation) * 2];
-
-        if (wasRunning) {
-            startWork();
-        }
     }
 }
 
 void UDPOutputWorker::setUDPAddress(const QString& address)
 {
+    QMutexLocker locker(&m_settingsMutex);
     m_destAddress.setAddress(address);
 }
 
 void UDPOutputWorker::setUDPPort(uint16_t port)
 {
+    QMutexLocker locker(&m_settingsMutex);
     m_destPort = port;
 }
 
 void UDPOutputWorker::setSampleFormat(UDPOutputSettings::SampleFormat format)
 {
+    QMutexLocker locker(&m_settingsMutex);
     m_sampleFormat = format;
 }
 
 void UDPOutputWorker::setUDPPayloadSize(quint32 size)
 {
     if (size >= 64 && size <= 65507) {
+        QMutexLocker locker(&m_settingsMutex);
         m_udpPayloadSize = size;
     }
 }
 
 void UDPOutputWorker::setGain(float gain)
 {
+    QMutexLocker locker(&m_settingsMutex);
     m_gain = gain;
 }
 
@@ -184,7 +204,8 @@ void UDPOutputWorker::runLoop()
     using clock = std::chrono::steady_clock;
     auto tStart = clock::now();
     uint64_t totalOutputSamples = 0;
-    const uint64_t outputSampleRate = (uint64_t)m_samplerate * (1 << m_log2Interpolation);
+    const uint64_t interpFactor = 1ULL << m_log2Interpolation;
+    const uint64_t outputSampleRate = (uint64_t) m_samplerate * interpFactor;
 
     if (outputSampleRate == 0 || !m_sampleFifo) {
         return;
@@ -195,6 +216,7 @@ void UDPOutputWorker::runLoop()
     if (baseChunkSize < 128) {
         baseChunkSize = 128;
     }
+    const uint64_t baseOutputChunkSamples = (uint64_t) baseChunkSize * interpFactor;
 
     while (m_running)
     {
@@ -202,7 +224,7 @@ void UDPOutputWorker::runLoop()
         double elapsedSec = std::chrono::duration<double>(now - tStart).count();
         uint64_t expectedOutputSamples = (uint64_t)(elapsedSec * outputSampleRate);
 
-        if (totalOutputSamples <= expectedOutputSamples)
+        if (totalOutputSamples + baseOutputChunkSamples <= expectedOutputSamples)
         {
             uint32_t inputChunkSize = baseChunkSize;
 
@@ -228,16 +250,16 @@ void UDPOutputWorker::runLoop()
                 callbackPart(data, iPart2Begin, iPart2End);
             }
 
-            uint32_t outputSamplesProduced = inputChunkSize * (1 << m_log2Interpolation);
-            totalOutputSamples += outputSamplesProduced;
-            m_samplesCount += inputChunkSize;
+            const unsigned int actualRead = (iPart1End - iPart1Begin) + (iPart2End - iPart2Begin);
+            totalOutputSamples += (uint64_t) actualRead * interpFactor;
+            m_samplesCount += actualRead;
         }
         else
         {
             // Ahead of schedule: yield or sleep briefly
-            uint64_t aheadSamples = totalOutputSamples - expectedOutputSamples;
-            double aheadSec = (double)aheadSamples / outputSampleRate;
-            if (aheadSec > 0.002) {
+            uint64_t aheadSamples = (totalOutputSamples + baseOutputChunkSamples) - expectedOutputSamples;
+            double aheadSec = (double) aheadSamples / outputSampleRate;
+            if (aheadSec > 0.0015) {
                 std::this_thread::sleep_for(std::chrono::milliseconds(1));
             } else {
                 std::this_thread::yield();
@@ -327,11 +349,25 @@ void UDPOutputWorker::convertAndSend(int16_t *buf, unsigned int nbComplexSamples
         return;
     }
 
-    switch (m_sampleFormat)
+    QHostAddress destAddress;
+    uint16_t destPort;
+    UDPOutputSettings::SampleFormat sampleFormat;
+    quint32 udpPayloadSize;
+    float gain;
+    {
+        QMutexLocker locker(&m_settingsMutex);
+        destAddress = m_destAddress;
+        destPort = m_destPort;
+        sampleFormat = m_sampleFormat;
+        udpPayloadSize = m_udpPayloadSize;
+        gain = m_gain;
+    }
+
+    switch (sampleFormat)
     {
     case UDPOutputSettings::FormatComplexFloat:
     {
-        const float scale = m_gain / 32768.0f;
+        const float scale = gain / 32768.0f;
         const std::size_t bytesToAdd = nbComplexSamples * 2 * sizeof(float);
         std::size_t offset = m_payloadBuf.size();
         m_payloadBuf.resize(offset + bytesToAdd);
@@ -351,7 +387,7 @@ void UDPOutputWorker::convertAndSend(int16_t *buf, unsigned int nbComplexSamples
         m_payloadBuf.resize(offset + bytesToAdd);
         int16_t* dest = reinterpret_cast<int16_t*>(&m_payloadBuf[offset]);
 
-        if (m_gain == 1.0f)
+        if (gain == 1.0f)
         {
             std::memcpy(dest, buf, bytesToAdd);
         }
@@ -359,15 +395,15 @@ void UDPOutputWorker::convertAndSend(int16_t *buf, unsigned int nbComplexSamples
         {
             for (unsigned int i = 0; i < nbComplexSamples; ++i)
             {
-                dest[2 * i]     = (int16_t) qBound(-32768, (int)(buf[2 * i] * m_gain), 32767);
-                dest[2 * i + 1] = (int16_t) qBound(-32768, (int)(buf[2 * i + 1] * m_gain), 32767);
+                dest[2 * i]     = (int16_t) qBound(-32768, (int)(buf[2 * i] * gain), 32767);
+                dest[2 * i + 1] = (int16_t) qBound(-32768, (int)(buf[2 * i + 1] * gain), 32767);
             }
         }
         break;
     }
     case UDPOutputSettings::FormatIQ8:
     {
-        const float scale = m_gain / 256.0f;
+        const float scale = gain / 256.0f;
         const std::size_t bytesToAdd = nbComplexSamples * 2 * sizeof(int8_t);
         std::size_t offset = m_payloadBuf.size();
         m_payloadBuf.resize(offset + bytesToAdd);
@@ -382,7 +418,7 @@ void UDPOutputWorker::convertAndSend(int16_t *buf, unsigned int nbComplexSamples
     }
     case UDPOutputSettings::FormatIQ24:
     {
-        const float scale = m_gain * 256.0f;
+        const float scale = gain * 256.0f;
         const std::size_t bytesToAdd = nbComplexSamples * 6; // 3 bytes I + 3 bytes Q
         std::size_t offset = m_payloadBuf.size();
         m_payloadBuf.resize(offset + bytesToAdd);
@@ -407,7 +443,7 @@ void UDPOutputWorker::convertAndSend(int16_t *buf, unsigned int nbComplexSamples
 
     // Determine sample size in bytes to align datagrams to complex sample boundaries
     std::size_t sampleBytes = 2;
-    switch (m_sampleFormat)
+    switch (sampleFormat)
     {
     case UDPOutputSettings::FormatComplexFloat: sampleBytes = 8; break;
     case UDPOutputSettings::FormatIQ16:          sampleBytes = 4; break;
@@ -415,7 +451,7 @@ void UDPOutputWorker::convertAndSend(int16_t *buf, unsigned int nbComplexSamples
     case UDPOutputSettings::FormatIQ24:          sampleBytes = 6; break;
     }
 
-    std::size_t payloadSize = (m_udpPayloadSize / sampleBytes) * sampleBytes;
+    std::size_t payloadSize = (udpPayloadSize / sampleBytes) * sampleBytes;
     if (payloadSize == 0) {
         payloadSize = sampleBytes;
     }
@@ -427,8 +463,8 @@ void UDPOutputWorker::convertAndSend(int16_t *buf, unsigned int nbComplexSamples
         qint64 sent = m_udpSocket->writeDatagram(
             m_payloadBuf.data() + offset,
             (qint64) payloadSize,
-            m_destAddress,
-            m_destPort
+            destAddress,
+            destPort
         );
 
         if (sent < 0) {

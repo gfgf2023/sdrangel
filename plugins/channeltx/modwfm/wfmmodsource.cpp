@@ -16,6 +16,7 @@
 // Copyright (C) 2019-2022 Edouard Griffiths, F4EXB <f4exb06@gmail.com>          //
 // Copyright (C) 2022 Jiří Pinkava <jiri.pinkava@rossum.ai>                      //
 
+#include <cmath>
 #include <QDebug>
 
 #include "dsp/datafifo.h"
@@ -66,6 +67,29 @@ WFMModSource::~WFMModSource()
     delete[] m_rfFilterBuffer;
 }
 
+void WFMModSource::reset()
+{
+    QMutexLocker mlock(&m_mutex);
+    m_modPhasor = 0.0f;
+    m_modSample = Complex{0.0f, 0.0f};
+    m_interpolatorDistanceRemain = 0.0f;
+    m_interpolatorConsumed = false;
+    m_magsq = 0.0;
+    m_movingAverage.reset();
+    m_audioBufferFill = 0;
+    m_audioReadBufferFill = 0;
+    m_rfFilterBufferIndex = 0;
+    std::fill(m_rfFilterBuffer, m_rfFilterBuffer + m_rfFilterFFTLength, Complex{0, 0});
+
+    if (m_channelSampleRate > 0)
+    {
+        delete m_rfFilter;
+        Real lowCut = -(m_settings.m_rfBandwidth / 2.0) / m_channelSampleRate;
+        Real hiCut  = (m_settings.m_rfBandwidth / 2.0) / m_channelSampleRate;
+        m_rfFilter = new fftfilt(lowCut, hiCut, m_rfFilterFFTLength);
+    }
+}
+
 void WFMModSource::pull(SampleVector::iterator begin, unsigned int nbSamples)
 {
     std::for_each(
@@ -79,7 +103,7 @@ void WFMModSource::pull(SampleVector::iterator begin, unsigned int nbSamples)
 
 void WFMModSource::pullOne(Sample& sample)
 {
-	if (m_settings.m_channelMute)
+	if (m_settings.m_channelMute || (m_channelSampleRate <= 0))
 	{
 		sample.m_real = 0.0f;
 		sample.m_imag = 0.0f;
@@ -119,11 +143,21 @@ void WFMModSource::pullOne(Sample& sample)
         calculateLevel(t);
 	}
 
+    if (!std::isfinite(t)) {
+        t = 0.0f;
+    }
+
     m_modPhasor += (m_settings.m_fmDeviation / (float) m_channelSampleRate) * t * M_PI * 2.0f;
 
-    // limit phasor range to ]-pi,pi]
-    if (m_modPhasor > M_PI) {
+    if (!std::isfinite(m_modPhasor)) {
+        m_modPhasor = 0.0f;
+    } else if (m_modPhasor > M_PI) {
         m_modPhasor -= (2.0f * M_PI);
+    } else if (m_modPhasor <= -M_PI) {
+        m_modPhasor += (2.0f * M_PI);
+    }
+    if ((m_modPhasor > M_PI) || (m_modPhasor <= -M_PI)) {
+        m_modPhasor = std::remainder(m_modPhasor, 2.0f * (float) M_PI);
     }
 
     ci.real(cos(m_modPhasor) * 0.891235351562f * SDR_TX_SCALEF); // -1 dB
@@ -141,6 +175,12 @@ void WFMModSource::pullOne(Sample& sample)
 
     ci = m_rfFilterBuffer[m_rfFilterBufferIndex] * m_carrierNco.nextIQ(); // shift to carrier frequency
     m_rfFilterBufferIndex++;
+
+    if (!std::isfinite(ci.real()) || !std::isfinite(ci.imag()))
+    {
+        ci = Complex{0.0f, 0.0f};
+        m_modPhasor = 0.0f;
+    }
 
     double magsq = ci.real() * ci.real() + ci.imag() * ci.imag();
 	magsq /= (SDR_TX_SCALED*SDR_TX_SCALED);
@@ -191,6 +231,10 @@ void WFMModSource::modulateAudio()
 
 void WFMModSource::prefetch(unsigned int nbSamples)
 {
+    if (m_channelSampleRate <= 0) {
+        return;
+    }
+
     unsigned int nbSamplesAudio = (unsigned int) (nbSamples * ((Real) m_audioSampleRate / (Real) m_channelSampleRate));
     pullAudio(nbSamplesAudio);
 }
@@ -199,17 +243,38 @@ void WFMModSource::pullAudio(unsigned int nbSamplesAudio)
 {
     QMutexLocker mlock(&m_mutex);
 
+    if (nbSamplesAudio == 0)
+    {
+        m_audioBufferFill = 0;
+        return;
+    }
+
     if (nbSamplesAudio > m_audioBuffer.size()) {
         m_audioBuffer.resize(nbSamplesAudio);
     }
 
-    std::copy(&m_audioReadBuffer[0], &m_audioReadBuffer[nbSamplesAudio], &m_audioBuffer[0]);
+    unsigned int nbCopy = static_cast<unsigned int>(std::min<std::size_t>(nbSamplesAudio, m_audioReadBuffer.size()));
+    unsigned int nbAvail = std::min(nbCopy, m_audioReadBufferFill);
+
+    if (nbAvail > 0) {
+        std::copy(&m_audioReadBuffer[0], &m_audioReadBuffer[nbAvail], &m_audioBuffer[0]);
+    }
+
+    std::size_t zeroEnd = std::min<std::size_t>(static_cast<std::size_t>(nbSamplesAudio) + 1, m_audioBuffer.size());
+    if (zeroEnd > nbAvail) {
+        std::fill(&m_audioBuffer[nbAvail], &m_audioBuffer[zeroEnd], AudioSample{0, 0});
+    }
+
     m_audioBufferFill = 0;
 
-    if (m_audioReadBufferFill > nbSamplesAudio) // copy back remaining samples at the start of the read buffer
+    if (m_audioReadBufferFill > nbCopy) // copy back remaining samples at the start of the read buffer
     {
-        std::copy(&m_audioReadBuffer[nbSamplesAudio], &m_audioReadBuffer[m_audioReadBufferFill], &m_audioReadBuffer[0]);
-        m_audioReadBufferFill = m_audioReadBufferFill - nbSamplesAudio; // adjust current read buffer fill pointer
+        std::copy(&m_audioReadBuffer[nbCopy], &m_audioReadBuffer[m_audioReadBufferFill], &m_audioReadBuffer[0]);
+        m_audioReadBufferFill = m_audioReadBufferFill - nbCopy; // adjust current read buffer fill pointer
+    }
+    else
+    {
+        m_audioReadBufferFill = 0;
     }
 }
 
@@ -356,7 +421,7 @@ void WFMModSource::calculateLevel(const Real& sample)
 
 void WFMModSource::applyAudioSampleRate(int sampleRate)
 {
-    if (sampleRate < 0)
+    if (sampleRate <= 0)
     {
         qWarning("WFMModSource::applyAudioSampleRate: %d", sampleRate);
         return;
@@ -366,7 +431,9 @@ void WFMModSource::applyAudioSampleRate(int sampleRate)
 
     m_interpolatorDistanceRemain = 0;
     m_interpolatorConsumed = false;
-    m_interpolatorDistance = (Real) sampleRate / (Real) m_channelSampleRate;
+    if (m_channelSampleRate > 0) {
+        m_interpolatorDistance = (Real) sampleRate / (Real) m_channelSampleRate;
+    }
     m_interpolator.create(48, sampleRate, m_settings.m_rfBandwidth / 2.2, 3.0);
     m_cwToneNco.setFreq(m_settings.m_toneFrequency, sampleRate);
     m_cwKeyer.setSampleRate(sampleRate);
@@ -390,7 +457,7 @@ void WFMModSource::applyAudioSampleRate(int sampleRate)
 
 void WFMModSource::applyFeedbackAudioSampleRate(int sampleRate)
 {
-    if (sampleRate < 0)
+    if (sampleRate <= 0)
     {
         qWarning("WFMModSource::applyFeedbackAudioSampleRate: invalid sample rate %d", sampleRate);
         return;
@@ -402,9 +469,12 @@ void WFMModSource::applyFeedbackAudioSampleRate(int sampleRate)
     // input samples per output sample and the filter is designed at the input rate.
     m_feedbackInterpolatorDistanceRemain = 0;
     m_feedbackInterpolatorConsumed = false;
-    m_feedbackInterpolatorDistance = (Real) m_audioSampleRate / (Real) sampleRate;
-    Real cutoff = std::min(sampleRate, m_audioSampleRate) / 2.2f;
-    m_feedbackInterpolator.create(48, m_audioSampleRate, cutoff, 3.0);
+    if (m_audioSampleRate > 0)
+    {
+        m_feedbackInterpolatorDistance = (Real) m_audioSampleRate / (Real) sampleRate;
+        Real cutoff = std::min(sampleRate, m_audioSampleRate) / 2.2f;
+        m_feedbackInterpolator.create(48, m_audioSampleRate, cutoff, 3.0);
+    }
 
     m_feedbackAudioSampleRate = sampleRate;
 }
@@ -413,23 +483,33 @@ void WFMModSource::applySettings(const QStringList& settingsKeys, const WFMModSe
 {
     if ((settingsKeys.contains("afBandwidth") && (settings.m_afBandwidth != m_settings.m_afBandwidth)) || force)
     {
-        m_interpolatorDistanceRemain = 0;
-        m_interpolatorConsumed = false;
-        m_interpolatorDistance = (Real) m_audioSampleRate / (Real) m_channelSampleRate;
-        m_interpolator.create(48, m_audioSampleRate, settings.m_afBandwidth / 2.2, 3.0);
+        if ((m_audioSampleRate > 0) && (m_channelSampleRate > 0))
+        {
+            m_interpolatorDistanceRemain = 0;
+            m_interpolatorConsumed = false;
+            m_interpolatorDistance = (Real) m_audioSampleRate / (Real) m_channelSampleRate;
+            m_interpolator.create(48, m_audioSampleRate, settings.m_afBandwidth / 2.2, 3.0);
+        }
     }
 
     if ((settingsKeys.contains("rfBandwidth") && (settings.m_rfBandwidth != m_settings.m_rfBandwidth)) || force)
     {
-        Real lowCut = -(settings.m_rfBandwidth / 2.2) / m_channelSampleRate;
-        Real hiCut  = (settings.m_rfBandwidth / 2.2) / m_channelSampleRate;
-        m_rfFilter->create_filter(lowCut, hiCut);
+        if (m_channelSampleRate > 0)
+        {
+            Real lowCut = -(settings.m_rfBandwidth / 2.2) / m_channelSampleRate;
+            Real hiCut  = (settings.m_rfBandwidth / 2.2) / m_channelSampleRate;
+            m_rfFilter->create_filter(lowCut, hiCut);
+        }
     }
 
     if ((settingsKeys.contains("toneFrequency") && (settings.m_toneFrequency != m_settings.m_toneFrequency)) || force)
     {
-        m_toneNco.setFreq(settings.m_toneFrequency, m_channelSampleRate);
-        m_cwToneNco.setFreq(settings.m_toneFrequency, m_audioSampleRate);
+        if (m_channelSampleRate > 0) {
+            m_toneNco.setFreq(settings.m_toneFrequency, m_channelSampleRate);
+        }
+        if (m_audioSampleRate > 0) {
+            m_cwToneNco.setFreq(settings.m_toneFrequency, m_audioSampleRate);
+        }
     }
 
     if ((settingsKeys.contains("modAFInput") && (settings.m_modAFInput != m_settings.m_modAFInput)) || force)
@@ -454,6 +534,12 @@ void WFMModSource::applyChannelSettings(int channelSampleRate, int channelFreque
             << " channelSampleRate: " << channelSampleRate
             << " channelFrequencyOffset: " << channelFrequencyOffset;
 
+    if (channelSampleRate <= 0)
+    {
+        qWarning() << "WFMModSource::applyChannelSettings: invalid channelSampleRate:" << channelSampleRate;
+        return;
+    }
+
     if ((channelFrequencyOffset != m_channelFrequencyOffset)
      || (channelSampleRate != m_channelSampleRate) || force) {
         m_carrierNco.setFreq(channelFrequencyOffset, channelSampleRate);
@@ -464,7 +550,9 @@ void WFMModSource::applyChannelSettings(int channelSampleRate, int channelFreque
         m_interpolatorDistanceRemain = 0;
         m_interpolatorConsumed = false;
         m_interpolatorDistance = (Real) m_audioSampleRate / (Real) channelSampleRate;
-        m_interpolator.create(48, m_audioSampleRate, m_settings.m_afBandwidth / 2.2, 3.0);
+        if (m_audioSampleRate > 0) {
+            m_interpolator.create(48, m_audioSampleRate, m_settings.m_afBandwidth / 2.2, 3.0);
+        }
         Real lowCut = -(m_settings.m_rfBandwidth / 2.0) / channelSampleRate;
         Real hiCut  = (m_settings.m_rfBandwidth / 2.0) / channelSampleRate;
         m_rfFilter->create_filter(lowCut, hiCut);
