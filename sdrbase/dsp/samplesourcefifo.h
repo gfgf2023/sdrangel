@@ -54,8 +54,12 @@ public:
     /** returns ratio of off center over buffer size with sign: negative read lags and positive read leads */
     float getRWBalance() const
     {
+        QMutexLocker mutexLocker(&m_mutex);
+        if (m_size == 0) {
+            return 0.0f;
+        }
         int delta;
-        if (m_writeHead > m_readHead) {
+        if (m_writeHead >= m_readHead) {
             delta = (m_size/m_rwDivisor) - (m_writeHead - m_readHead);
         } else {
             delta = (m_readHead - m_writeHead) - (m_size/m_rwDivisor);
@@ -80,7 +84,7 @@ private:
     unsigned int m_readHead;
     unsigned int m_writeHead;
     unsigned int m_readCount;
-    QMutex m_mutex;
+    mutable QMutex m_mutex;
 };
 
 #endif // SDRBASE_DSP_SAMPLESOURCEFIFO_H_

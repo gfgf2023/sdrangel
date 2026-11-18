@@ -23,7 +23,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # configure version
 set(sdrangel_VERSION_MAJOR "8")
-set(sdrangel_VERSION_MINOR "0")
+set(sdrangel_VERSION_MINOR "2")
 set(sdrangel_VERSION_PATCH "0")
 set(sdrangel_VERSION_SUFFIX "")
 
@@ -185,6 +185,7 @@ option(ENABLE_CHANNELRX_ENDOFTRAIN "Enable channelrx end-of-train plugin" ON)
 option(ENABLE_CHANNELRX_CHANNELPOWER "Enable channelrx channel power plugin" ON)
 option(ENABLE_CHANNELRX_WDSPRX "Enable channelrx WDSP receiver plugin" ON)
 option(ENABLE_CHANNELRX_DEMODINMARSAT "Enable channelrx demodinmarsat plugin" ON)
+option(ENABLE_CHANNELRX_DEMODACARS "Enable channelrx demodacars plugin" ON)
 
 # Channel Tx enablers
 option(ENABLE_CHANNELTX "Enable channeltx plugins" ON)
@@ -195,6 +196,7 @@ option(ENABLE_CHANNELTX_LOCALSOURCE "Enable channeltx localsource plugin" ON)
 option(ENABLE_CHANNELTX_MODDATV "Enable channeltx moddatv plugin" ON)
 option(ENABLE_CHANNELTX_MODAM "Enable channeltx modam plugin" ON)
 option(ENABLE_CHANNELTX_MODFREEDV "Enable channeltx modfreedv plugin" ON)
+option(ENABLE_CHANNELTX_MODDSE "Enable channeltx moddse plugin" ON)
 option(ENABLE_CHANNELTX_MODPACKET "Enable channeltx modpacket plugin" ON)
 option(ENABLE_CHANNELTX_MODSSB "Enable channeltx modssb plugin" ON)
 option(ENABLE_CHANNELTX_UDPSOURCE "Enable channeltx udpsource plugin" ON)
@@ -229,6 +231,7 @@ option(ENABLE_FEATURE_SATELLITETRACKER "Enable feature satellitetracker plugin" 
 option(ENABLE_FEATURE_APRS "Enable feature aprs plugin" ON)
 option(ENABLE_FEATURE_DEMODANALYZER "Enable feature demodanalyzer plugin" ON)
 option(ENABLE_FEATURE_AMBE "Enable feature ambe plugin" ON)
+option(ENABLE_FEATURE_AIRCRAFT "Enable feature aircraft plugin" ON)
 option(ENABLE_FEATURE_AIS "Enable feature ais plugin" ON)
 option(ENABLE_FEATURE_AFC "Enable feature afc plugin" ON)
 option(ENABLE_FEATURE_STARTRACKER "Enable feature startracker plugin" ON)
@@ -527,6 +530,7 @@ elseif (WIN32)
   set(LIBACARS_FOUND ON CACHE INTERNAL "")
   set(LIBACARS_INCLUDE_DIR "${EXTERNAL_LIBRARY_FOLDER}/libacars/include/libacars-2" CACHE INTERNAL "")
   set(LIBACARS_LIBRARIES "${EXTERNAL_LIBRARY_FOLDER}/libacars/lib/acars-2.lib" CACHE INTERNAL "")
+  set(LIBACARS_DLL_DIR "${EXTERNAL_LIBRARY_FOLDER}/libacars/bin/" CACHE INTERNAL "")
 
   # used on fixup_bundle phase
   set(WINDOWS_FIXUP_BUNDLE_LIB_DIRS
@@ -576,14 +580,6 @@ elseif(ANDROID)
   set(FAAD_FOUND ON CACHE INTERNAL "")
   set(FAAD_INCLUDE_DIR "${EXTERNAL_LIBRARY_FOLDER}/${ANDROID_ABI}/faad2/include" CACHE INTERNAL "")
   set(FAAD_LIBRARY "${EXTERNAL_LIBRARY_FOLDER}/${ANDROID_ABI}/faad2/lib/liblibfaadstatic.a" CACHE INTERNAL "")
-
-  set(LIBMBE_FOUND ON CACHE INTERNAL "")
-  set(LIBMBE_INCLUDE_DIR "${EXTERNAL_LIBRARY_FOLDER}/${ANDROID_ABI}/mbelib/include/" CACHE INTERNAL "")
-  set(LIBMBE_LIBRARIES "${EXTERNAL_LIBRARY_FOLDER}/${ANDROID_ABI}/mbelib/lib/libmbe.a" CACHE INTERNAL "")
-
-  set(LIBDSDCC_FOUND ON CACHE INTERNAL "")
-  set(LIBDSDCC_INCLUDE_DIR "${EXTERNAL_LIBRARY_FOLDER}/${ANDROID_ABI}/dsdcc/include/" CACHE INTERNAL "")
-  set(LIBDSDCC_LIBRARIES "${EXTERNAL_LIBRARY_FOLDER}/${ANDROID_ABI}/dsdcc/lib/libdsdcc.so" CACHE INTERNAL "")
 
   set(FFMPEG_FOUND ON CACHE INTERNAL "")
   set(FFMPEG_SKIP_CHECK ON CACHE INTERNAL "")
@@ -687,7 +683,6 @@ elseif(ANDROID)
       ${EXTERNAL_LIBRARY_FOLDER}/${ANDROID_ABI}/ffmpeg/lib/libswresample.so
       ${EXTERNAL_LIBRARY_FOLDER}/${ANDROID_ABI}/ffmpeg/lib/libswscale.so
       ${EXTERNAL_LIBRARY_FOLDER}/${ANDROID_ABI}/ffmpeg/lib/libc++_shared.so
-      ${EXTERNAL_LIBRARY_FOLDER}/${ANDROID_ABI}/dsdcc/lib/libdsdcc.so
       ${EXTERNAL_LIBRARY_FOLDER}/${ANDROID_ABI}/libusb/lib/libunrooted_android.so
       ${EXTERNAL_LIBRARY_FOLDER}/${ANDROID_ABI}/libusb/lib/libusb1.0.so
       ${EXTERNAL_LIBRARY_FOLDER}/${ANDROID_ABI}/cm256cc/lib/libcm256cc.so
@@ -765,7 +760,6 @@ elseif(ANDROID)
         ${EXTERNAL_LIBRARY_FOLDER}/arm64-v8a/ffmpeg/lib/libswresample.so
         ${EXTERNAL_LIBRARY_FOLDER}/arm64-v8a/ffmpeg/lib/libswscale.so
         ${EXTERNAL_LIBRARY_FOLDER}/arm64-v8a/ffmpeg/lib/libc++_shared.so
-        ${EXTERNAL_LIBRARY_FOLDER}/arm64-v8a/dsdcc/lib/libdsdcc.so
         ${EXTERNAL_LIBRARY_FOLDER}/arm64-v8a/libusb/lib/libunrooted_android.so
         ${EXTERNAL_LIBRARY_FOLDER}/arm64-v8a/libusb/lib/libusb1.0.so
         ${EXTERNAL_LIBRARY_FOLDER}/arm64-v8a/flac/lib/libFLAC.so
@@ -777,7 +771,6 @@ elseif(ANDROID)
         ${EXTERNAL_LIBRARY_FOLDER}/armeabi-v7a/ffmpeg/lib/libswresample.so
         ${EXTERNAL_LIBRARY_FOLDER}/armeabi-v7a/ffmpeg/lib/libswscale.so
         ${EXTERNAL_LIBRARY_FOLDER}/armeabi-v7a/ffmpeg/lib/libc++_shared.so
-        ${EXTERNAL_LIBRARY_FOLDER}/armeabi-v7a/dsdcc/lib/libdsdcc.so
         ${EXTERNAL_LIBRARY_FOLDER}/armeabi-v7a/libusb/lib/libunrooted_android.so
         ${EXTERNAL_LIBRARY_FOLDER}/armeabi-v7a/libusb/lib/libusb1.0.so
         ${EXTERNAL_LIBRARY_FOLDER}/armeabi-v7a/flac/lib/libFLAC.so
@@ -844,6 +837,7 @@ if(ENABLE_QT6)
     find_package(Qt6
                    COMPONENTS
                      Core
+                     Network
                      Widgets
                      WebSockets
                      Multimedia
@@ -856,6 +850,7 @@ else()
     find_package(Qt5 5.15
                    REQUIRED COMPONENTS
                      Core
+                     Network
                      Widgets
                      WebSockets
                      Multimedia
@@ -1015,9 +1010,9 @@ if (NOT ENABLE_EXTERNAL_LIBRARIES OR (ENABLE_EXTERNAL_LIBRARIES STREQUAL "AUTO")
     find_package(FAAD) # For DAB
     find_package(Codec2)
     find_package(CM256cc)
-    find_package(LibMbe)
     find_package(SerialDV)
-    find_package(LibDSDcc)
+    find_package(LibMBEVocoder)
+    find_package(LibVocosCodec)
     find_package(Sgp4)
     find_package(CSPICE)
     find_package(AptDec)
@@ -1025,6 +1020,7 @@ if (NOT ENABLE_EXTERNAL_LIBRARIES OR (ENABLE_EXTERNAL_LIBRARIES STREQUAL "AUTO")
     find_package(FFmpeg COMPONENTS AVCODEC AVFORMAT AVUTIL SWSCALE)
     find_package(GGMorse)
     find_package(LibInmarsatC)
+    find_package(LibAcars)
     find_package(RNnoise)
     find_package(FLAC)
     if (ENABLE_CHANNELRX AND ENABLE_CHANNELRX_DEMODDRM)
@@ -1172,7 +1168,7 @@ if(DOXYGEN_FOUND)
   # It is not an error when 'dot' is not found, just switching off the Doxygen's HAVE_DOT option
   find_package_handle_standard_args (Dot REQUIRED_VARS DOXYGEN_DOT_EXECUTABLE)
 
-  # This sets HAVE_CASE_SENSITIVE_FILESYSTEM which is 0 or 1, we need "YES" or "NO"
+  # This sets HAVE_CASE_SENSITIVE_FILESYSTEM which is 0 or 1, we need 'YES' or 'NO'
   include(cmake/Modules/CheckCaseSensitiveFileSystem.cmake)
   if (HAVE_CASE_SENSITIVE_FILESYSTEM)
     set(CMAKE_CASE_SENSITIVE_FILESYSTEM "YES")
@@ -1300,6 +1296,9 @@ if (BUILD_GUI)
   if(WIN32)
     set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES
                             WIN32_EXECUTABLE ${HIDE_CONSOLE})
+    if (ENABLE_CHANNELTX_MODDSE OR ENABLE_CHANNELRX_DEMODDSD)
+      add_dependencies(${CMAKE_PROJECT_NAME} sdrangel-tunnel-helper)
+    endif()
   endif()
 endif()
 
@@ -1319,6 +1318,10 @@ if (BUILD_SERVER)
         sdrsrv
         logging
     )
+
+    if(WIN32 AND (ENABLE_CHANNELTX_MODDSE OR ENABLE_CHANNELRX_DEMODDSD))
+      add_dependencies(sdrangelsrv sdrangel-tunnel-helper)
+    endif()
 
     if(HAVE_LIBUNWIND)
       target_link_libraries(sdrangelsrv ${LIBUNWIND_LIBRARIES})
@@ -1344,13 +1347,13 @@ endif()
 if (LINUX AND ENABLE_EXTERNAL_LIBRARIES)
     install(DIRECTORY ${EXTERNAL_BUILD_LIBRARIES}/lib${LIB_SUFFIX}/ DESTINATION ${INSTALL_LIB_DIR})
 endif()
-if(WIN32)
+if(WIN32 AND BUILD_GUI)
   include(DeployQt)
   windeployqt(${CMAKE_PROJECT_NAME} ${SDRANGEL_BINARY_BIN_DIR} ${PROJECT_SOURCE_DIR}/sdrgui/resources)
 endif()
 
 # Install debug symbols
-if (WIN32)
+if (WIN32 AND BUILD_GUI)
   install(FILES $<TARGET_PROPERTY:${CMAKE_PROJECT_NAME},RUNTIME_OUTPUT_DIRECTORY>/${CMAKE_PROJECT_NAME}stripped.pdb CONFIGURATIONS Release DESTINATION ${INSTALL_LIB_DIR} RENAME ${CMAKE_PROJECT_NAME}.pdb)
   install(FILES $<TARGET_PDB_FILE:${CMAKE_PROJECT_NAME}> CONFIGURATIONS Debug RelWithDebInfo DESTINATION ${INSTALL_BIN_DIR} )
 endif()

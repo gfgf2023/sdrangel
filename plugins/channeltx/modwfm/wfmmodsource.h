@@ -49,6 +49,7 @@ public:
     virtual void pull(SampleVector::iterator begin, unsigned int nbSamples);
     virtual void pullOne(Sample& sample);
     virtual void prefetch(unsigned int nbSamples);
+    void reset();
 
     void setInputFileStream(std::ifstream *ifstream) { m_ifstream = ifstream; }
     AudioFifo *getAudioFifo() { return &m_audioFifo; }

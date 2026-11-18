@@ -41,6 +41,7 @@ UDPOutput::UDPOutput(DeviceAPI *deviceAPI) :
     m_deviceDescription("UDPOutput"),
     m_masterTimer(deviceAPI->getMasterTimer())
 {
+    m_sampleSourceFifo.resize(SampleSourceFifo::getSizePolicy(m_settings.m_sampleRate));
     m_deviceAPI->setNbSinkStreams(1);
 }
 
@@ -87,10 +88,6 @@ bool UDPOutput::start()
 
     m_workerThread->start();
     m_running = true;
-
-    // Notify DSP engine and baseband channel modulators of active sample rate
-    auto *notif = new DSPSignalNotification(m_settings.m_sampleRate, m_settings.m_centerFrequency);
-    m_deviceAPI->getDeviceEngineInputMessageQueue()->push(notif);
 
     qDebug() << "UDPOutput::start: started";
     return true;

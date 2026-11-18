@@ -502,7 +502,7 @@ void DSPDeviceMIMOEngine::workSamplesSource(SampleVector& data, unsigned int iBe
                         FixReal nom = m_sumIndex;     // so that final sum is scaled by N (number of channels)
                         FixReal x = a.real()/den + nom*(b.real()/den);
                         FixReal y = a.imag()/den + nom*(b.imag()/den);
-                        return Sample{x, y};
+                        return Sample(x, y);
                     }
                 );
             }
@@ -810,12 +810,12 @@ DSPDeviceMIMOEngine::State DSPDeviceMIMOEngine::gotoError(int subsystemIndex, co
 
     if (subsystemIndex == 0)
     {
-        m_errorMessageRx = errorMessage;
+        m_errorMessageRx = QString("M:%1: %2").arg(getUID()).arg(errorMessage);
         setStateRx(State::StError);
     }
     else if (subsystemIndex == 1)
     {
-        m_errorMessageTx = errorMessage;
+        m_errorMessageTx = QString("M:%1: %2").arg(getUID()).arg(errorMessage);
         setStateTx(State::StError);
     }
 

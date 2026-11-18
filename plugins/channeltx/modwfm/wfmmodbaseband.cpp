@@ -57,6 +57,7 @@ void WFMModBaseband::reset()
 {
     QMutexLocker mutexLocker(&m_mutex);
     m_sampleFifo.reset();
+    m_source.reset();
 }
 
 void WFMModBaseband::setChannel(ChannelAPI *channel)
@@ -125,6 +126,12 @@ void WFMModBaseband::handleData()
 
 void WFMModBaseband::processFifo(SampleVector& data, unsigned int iBegin, unsigned int iEnd)
 {
+    if (m_channelizer->getChannelSampleRate() <= 0)
+    {
+        std::fill(data.begin() + iBegin, data.begin() + iEnd, Sample{0, 0});
+        return;
+    }
+
     m_channelizer->prefetch(iEnd - iBegin);
     m_channelizer->pull(data.begin() + iBegin, iEnd - iBegin);
 }
@@ -159,10 +166,18 @@ bool WFMModBaseband::handleMessage(const Message& cmd)
         QMutexLocker mutexLocker(&m_mutex);
         DSPSignalNotification& notif = (DSPSignalNotification&) cmd;
         qDebug() << "WFMModBaseband::handleMessage: DSPSignalNotification: basebandSampleRate: " << notif.getSampleRate();
-        m_sampleFifo.resize(SampleSourceFifo::getSizePolicy(notif.getSampleRate()));
-        m_channelizer->setBasebandSampleRate(notif.getSampleRate());
-        m_source.applyChannelSettings(m_channelizer->getChannelSampleRate(), m_channelizer->getChannelFrequencyOffset());
-        m_source.applyAudioSampleRate(m_source.getAudioSampleRate()); // reapply in case of channel sample rate change
+
+        if (notif.getSampleRate() > 0)
+        {
+            m_sampleFifo.resize(SampleSourceFifo::getSizePolicy(notif.getSampleRate()));
+            m_channelizer->setBasebandSampleRate(notif.getSampleRate());
+
+            if (m_channelizer->getChannelSampleRate() > 0)
+            {
+                m_source.applyChannelSettings(m_channelizer->getChannelSampleRate(), m_channelizer->getChannelFrequencyOffset());
+                m_source.applyAudioSampleRate(m_source.getAudioSampleRate()); // reapply in case of channel sample rate change
+            }
+        }
 
 		return true;
     }
@@ -188,8 +203,12 @@ void WFMModBaseband::applySettings(const QStringList& settingsKeys, const WFMMod
      || (settingsKeys.contains("inputFrequencyOffset") && m_settings.m_inputFrequencyOffset != settings.m_inputFrequencyOffset) || force)
     {
         m_channelizer->setChannelization(settings.m_rfBandwidth, settings.m_inputFrequencyOffset);
-        m_source.applyChannelSettings(m_channelizer->getChannelSampleRate(), m_channelizer->getChannelFrequencyOffset());
-        m_source.applyAudioSampleRate(m_source.getAudioSampleRate()); // reapply in case of channel sample rate change
+
+        if (m_channelizer->getChannelSampleRate() > 0)
+        {
+            m_source.applyChannelSettings(m_channelizer->getChannelSampleRate(), m_channelizer->getChannelFrequencyOffset());
+            m_source.applyAudioSampleRate(m_source.getAudioSampleRate()); // reapply in case of channel sample rate change
+        }
     }
 
     if ((settingsKeys.contains("audioDeviceName") && settings.m_audioDeviceName != m_settings.m_audioDeviceName) || force)

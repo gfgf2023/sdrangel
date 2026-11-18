@@ -24,6 +24,7 @@
 #include <QTimer>
 #include <QElapsedTimer>
 #include <QHostAddress>
+#include <QMutex>
 #include <QVariant>
 #include <vector>
 #include <stdint.h>
@@ -80,9 +81,11 @@ private:
 #pragma pack(pop)
 
     std::atomic<bool> m_running;
+    std::atomic<bool> m_stopRequested;
 
     SampleSourceFifo* m_sampleFifo;
     QUdpSocket* m_udpSocket;
+    mutable QMutex m_settingsMutex;
     QHostAddress m_destAddress;
     uint16_t m_destPort;
     UDPOutputSettings::SampleFormat m_sampleFormat;
