@@ -32,6 +32,8 @@ SWGChannelReport::SWGChannelReport() {
     m_channel_type_isSet = false;
     direction = 0;
     m_direction_isSet = false;
+    acars_demod_report = nullptr;
+    m_acars_demod_report_isSet = false;
     adsb_demod_report = nullptr;
     m_adsb_demod_report_isSet = false;
     ais_demod_report = nullptr;
@@ -44,6 +46,8 @@ SWGChannelReport::SWGChannelReport() {
     m_wefax_demod_report_isSet = false;
     am_mod_report = nullptr;
     m_am_mod_report_isSet = false;
+    atv_demod_report = nullptr;
+    m_atv_demod_report_isSet = false;
     atv_mod_report = nullptr;
     m_atv_mod_report_isSet = false;
     bfm_demod_report = nullptr;
@@ -69,19 +73,19 @@ SWGChannelReport::SWGChannelReport() {
     doa2_report = nullptr;
     m_doa2_report_isSet = false;
     dsc_demod_report = nullptr;
-    selcal_demod_report = nullptr;
     m_dsc_demod_report_isSet = false;
-    m_selcal_demod_report_isSet = false;
     dsd_demod_report = nullptr;
     m_dsd_demod_report_isSet = false;
     drone_id_demod_report = nullptr;
     m_drone_id_demod_report_isSet = false;
+    dse_mod_report = nullptr;
+    m_dse_mod_report_isSet = false;
     end_of_train_demod_report = nullptr;
     m_end_of_train_demod_report_isSet = false;
-    ieee_802_15_4_mod_report = nullptr;
-    m_ieee_802_15_4_mod_report_isSet = false;
     ieee_802_15_4_demod_report = nullptr;
     m_ieee_802_15_4_demod_report_isSet = false;
+    ieee_802_15_4_mod_report = nullptr;
+    m_ieee_802_15_4_mod_report_isSet = false;
     file_sink_report = nullptr;
     m_file_sink_report_isSet = false;
     file_source_report = nullptr;
@@ -162,6 +166,8 @@ SWGChannelReport::SWGChannelReport() {
     m_wfm_demod_report_isSet = false;
     wfm_mod_report = nullptr;
     m_wfm_mod_report_isSet = false;
+    selcal_demod_report = nullptr;
+    m_selcal_demod_report_isSet = false;
 }
 
 SWGChannelReport::~SWGChannelReport() {
@@ -174,6 +180,8 @@ SWGChannelReport::init() {
     m_channel_type_isSet = false;
     direction = 0;
     m_direction_isSet = false;
+    acars_demod_report = new SWGACARSDemodReport();
+    m_acars_demod_report_isSet = false;
     adsb_demod_report = new SWGADSBDemodReport();
     m_adsb_demod_report_isSet = false;
     ais_demod_report = new SWGAISDemodReport();
@@ -186,6 +194,8 @@ SWGChannelReport::init() {
     m_wefax_demod_report_isSet = false;
     am_mod_report = new SWGAMModReport();
     m_am_mod_report_isSet = false;
+    atv_demod_report = new SWGATVDemodReport();
+    m_atv_demod_report_isSet = false;
     atv_mod_report = new SWGATVModReport();
     m_atv_mod_report_isSet = false;
     bfm_demod_report = new SWGBFMDemodReport();
@@ -211,19 +221,19 @@ SWGChannelReport::init() {
     doa2_report = new SWGDOA2Report();
     m_doa2_report_isSet = false;
     dsc_demod_report = new SWGDSCDemodReport();
-    selcal_demod_report = new SWGSELCALDemodReport();
     m_dsc_demod_report_isSet = false;
-    m_selcal_demod_report_isSet = false;
     dsd_demod_report = new SWGDSDDemodReport();
     m_dsd_demod_report_isSet = false;
     drone_id_demod_report = new SWGDroneIDDemodReport();
     m_drone_id_demod_report_isSet = false;
+    dse_mod_report = new SWGDSEModReport();
+    m_dse_mod_report_isSet = false;
     end_of_train_demod_report = new SWGEndOfTrainDemodReport();
     m_end_of_train_demod_report_isSet = false;
-    ieee_802_15_4_mod_report = new SWGIEEE_802_15_4_ModReport();
-    m_ieee_802_15_4_mod_report_isSet = false;
     ieee_802_15_4_demod_report = new SWGIEEE_802_15_4_DemodReport();
     m_ieee_802_15_4_demod_report_isSet = false;
+    ieee_802_15_4_mod_report = new SWGIEEE_802_15_4_ModReport();
+    m_ieee_802_15_4_mod_report_isSet = false;
     file_sink_report = new SWGFileSinkReport();
     m_file_sink_report_isSet = false;
     file_source_report = new SWGFileSourceReport();
@@ -276,8 +286,6 @@ SWGChannelReport::init() {
     m_remote_source_report_isSet = false;
     rtty_demod_report = new SWGRTTYDemodReport();
     m_rtty_demod_report_isSet = false;
-    psk31_demod_report = new SWGPSK31DemodReport();
-    m_psk31_demod_report_isSet = false;
     rtty_mod_report = new SWGRTTYModReport();
     m_rtty_mod_report_isSet = false;
     packet_demod_report = new SWGPacketDemodReport();
@@ -288,6 +296,8 @@ SWGChannelReport::init() {
     m_pager_demod_report_isSet = false;
     psk31_mod_report = new SWGPSK31ModReport();
     m_psk31_mod_report_isSet = false;
+    psk31_demod_report = new SWGPSK31DemodReport();
+    m_psk31_demod_report_isSet = false;
     sig_mf_file_sink_report = new SWGSigMFFileSinkReport();
     m_sig_mf_file_sink_report_isSet = false;
     ssb_mod_report = new SWGSSBModReport();
@@ -304,6 +314,8 @@ SWGChannelReport::init() {
     m_wfm_demod_report_isSet = false;
     wfm_mod_report = new SWGWFMModReport();
     m_wfm_mod_report_isSet = false;
+    selcal_demod_report = new SWGSELCALDemodReport();
+    m_selcal_demod_report_isSet = false;
 }
 
 void
@@ -312,6 +324,9 @@ SWGChannelReport::cleanup() {
         delete channel_type;
     }
 
+    if(acars_demod_report != nullptr) { 
+        delete acars_demod_report;
+    }
     if(adsb_demod_report != nullptr) { 
         delete adsb_demod_report;
     }
@@ -324,11 +339,14 @@ SWGChannelReport::cleanup() {
     if(am_demod_report != nullptr) { 
         delete am_demod_report;
     }
-    if(wefax_demod_report != nullptr) {
+    if(wefax_demod_report != nullptr) { 
         delete wefax_demod_report;
     }
     if(am_mod_report != nullptr) { 
         delete am_mod_report;
+    }
+    if(atv_demod_report != nullptr) { 
+        delete atv_demod_report;
     }
     if(atv_mod_report != nullptr) { 
         delete atv_mod_report;
@@ -336,7 +354,7 @@ SWGChannelReport::cleanup() {
     if(bfm_demod_report != nullptr) { 
         delete bfm_demod_report;
     }
-    if(bfm_mod_report != nullptr) {
+    if(bfm_mod_report != nullptr) { 
         delete bfm_mod_report;
     }
     if(dab_demod_report != nullptr) { 
@@ -369,23 +387,23 @@ SWGChannelReport::cleanup() {
     if(dsc_demod_report != nullptr) { 
         delete dsc_demod_report;
     }
-    if(selcal_demod_report != nullptr) {
-        delete selcal_demod_report;
-    }
     if(dsd_demod_report != nullptr) { 
         delete dsd_demod_report;
     }
     if(drone_id_demod_report != nullptr) { 
         delete drone_id_demod_report;
     }
+    if(dse_mod_report != nullptr) { 
+        delete dse_mod_report;
+    }
     if(end_of_train_demod_report != nullptr) { 
         delete end_of_train_demod_report;
     }
-    if(ieee_802_15_4_mod_report != nullptr) { 
-        delete ieee_802_15_4_mod_report;
-    }
     if(ieee_802_15_4_demod_report != nullptr) { 
         delete ieee_802_15_4_demod_report;
+    }
+    if(ieee_802_15_4_mod_report != nullptr) { 
+        delete ieee_802_15_4_mod_report;
     }
     if(file_sink_report != nullptr) { 
         delete file_sink_report;
@@ -465,9 +483,6 @@ SWGChannelReport::cleanup() {
     if(rtty_demod_report != nullptr) { 
         delete rtty_demod_report;
     }
-    if(psk31_demod_report != nullptr) {
-        delete psk31_demod_report;
-    }
     if(rtty_mod_report != nullptr) { 
         delete rtty_mod_report;
     }
@@ -482,6 +497,9 @@ SWGChannelReport::cleanup() {
     }
     if(psk31_mod_report != nullptr) { 
         delete psk31_mod_report;
+    }
+    if(psk31_demod_report != nullptr) { 
+        delete psk31_demod_report;
     }
     if(sig_mf_file_sink_report != nullptr) { 
         delete sig_mf_file_sink_report;
@@ -507,6 +525,9 @@ SWGChannelReport::cleanup() {
     if(wfm_mod_report != nullptr) { 
         delete wfm_mod_report;
     }
+    if(selcal_demod_report != nullptr) { 
+        delete selcal_demod_report;
+    }
 }
 
 SWGChannelReport*
@@ -524,6 +545,8 @@ SWGChannelReport::fromJsonObject(QJsonObject &pJson) {
     
     ::SWGSDRangel::setValue(&direction, pJson["direction"], "qint32", "");
     
+    ::SWGSDRangel::setValue(&acars_demod_report, pJson["ACARSDemodReport"], "SWGACARSDemodReport", "SWGACARSDemodReport");
+    
     ::SWGSDRangel::setValue(&adsb_demod_report, pJson["ADSBDemodReport"], "SWGADSBDemodReport", "SWGADSBDemodReport");
     
     ::SWGSDRangel::setValue(&ais_demod_report, pJson["AISDemodReport"], "SWGAISDemodReport", "SWGAISDemodReport");
@@ -531,13 +554,17 @@ SWGChannelReport::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&ais_mod_report, pJson["AISModReport"], "SWGAISModReport", "SWGAISModReport");
     
     ::SWGSDRangel::setValue(&am_demod_report, pJson["AMDemodReport"], "SWGAMDemodReport", "SWGAMDemodReport");
+    
     ::SWGSDRangel::setValue(&wefax_demod_report, pJson["WefaxDemodReport"], "SWGWefaxDemodReport", "SWGWefaxDemodReport");
     
     ::SWGSDRangel::setValue(&am_mod_report, pJson["AMModReport"], "SWGAMModReport", "SWGAMModReport");
     
+    ::SWGSDRangel::setValue(&atv_demod_report, pJson["ATVDemodReport"], "SWGATVDemodReport", "SWGATVDemodReport");
+    
     ::SWGSDRangel::setValue(&atv_mod_report, pJson["ATVModReport"], "SWGATVModReport", "SWGATVModReport");
     
     ::SWGSDRangel::setValue(&bfm_demod_report, pJson["BFMDemodReport"], "SWGBFMDemodReport", "SWGBFMDemodReport");
+    
     ::SWGSDRangel::setValue(&bfm_mod_report, pJson["BFMModReport"], "SWGBFMModReport", "SWGBFMModReport");
     
     ::SWGSDRangel::setValue(&dab_demod_report, pJson["DABDemodReport"], "SWGDABDemodReport", "SWGDABDemodReport");
@@ -559,17 +586,18 @@ SWGChannelReport::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&doa2_report, pJson["DOA2Report"], "SWGDOA2Report", "SWGDOA2Report");
     
     ::SWGSDRangel::setValue(&dsc_demod_report, pJson["DSCDemodReport"], "SWGDSCDemodReport", "SWGDSCDemodReport");
-    ::SWGSDRangel::setValue(&selcal_demod_report, pJson["SELCALDemodReport"], "SWGSELCALDemodReport", "SWGSELCALDemodReport");
     
     ::SWGSDRangel::setValue(&dsd_demod_report, pJson["DSDDemodReport"], "SWGDSDDemodReport", "SWGDSDDemodReport");
     
     ::SWGSDRangel::setValue(&drone_id_demod_report, pJson["DroneIDDemodReport"], "SWGDroneIDDemodReport", "SWGDroneIDDemodReport");
     
+    ::SWGSDRangel::setValue(&dse_mod_report, pJson["DSEModReport"], "SWGDSEModReport", "SWGDSEModReport");
+    
     ::SWGSDRangel::setValue(&end_of_train_demod_report, pJson["EndOfTrainDemodReport"], "SWGEndOfTrainDemodReport", "SWGEndOfTrainDemodReport");
     
-    ::SWGSDRangel::setValue(&ieee_802_15_4_mod_report, pJson["IEEE_802_15_4_ModReport"], "SWGIEEE_802_15_4_ModReport", "SWGIEEE_802_15_4_ModReport");
-    
     ::SWGSDRangel::setValue(&ieee_802_15_4_demod_report, pJson["IEEE_802_15_4_DemodReport"], "SWGIEEE_802_15_4_DemodReport", "SWGIEEE_802_15_4_DemodReport");
+    
+    ::SWGSDRangel::setValue(&ieee_802_15_4_mod_report, pJson["IEEE_802_15_4_ModReport"], "SWGIEEE_802_15_4_ModReport", "SWGIEEE_802_15_4_ModReport");
     
     ::SWGSDRangel::setValue(&file_sink_report, pJson["FileSinkReport"], "SWGFileSinkReport", "SWGFileSinkReport");
     
@@ -622,7 +650,6 @@ SWGChannelReport::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&remote_source_report, pJson["RemoteSourceReport"], "SWGRemoteSourceReport", "SWGRemoteSourceReport");
     
     ::SWGSDRangel::setValue(&rtty_demod_report, pJson["RTTYDemodReport"], "SWGRTTYDemodReport", "SWGRTTYDemodReport");
-    ::SWGSDRangel::setValue(&psk31_demod_report, pJson["PSK31DemodReport"], "SWGPSK31DemodReport", "SWGPSK31DemodReport");
     
     ::SWGSDRangel::setValue(&rtty_mod_report, pJson["RTTYModReport"], "SWGRTTYModReport", "SWGRTTYModReport");
     
@@ -633,6 +660,8 @@ SWGChannelReport::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&pager_demod_report, pJson["PagerDemodReport"], "SWGPagerDemodReport", "SWGPagerDemodReport");
     
     ::SWGSDRangel::setValue(&psk31_mod_report, pJson["PSK31ModReport"], "SWGPSK31ModReport", "SWGPSK31ModReport");
+    
+    ::SWGSDRangel::setValue(&psk31_demod_report, pJson["PSK31DemodReport"], "SWGPSK31DemodReport", "SWGPSK31DemodReport");
     
     ::SWGSDRangel::setValue(&sig_mf_file_sink_report, pJson["SigMFFileSinkReport"], "SWGSigMFFileSinkReport", "SWGSigMFFileSinkReport");
     
@@ -649,6 +678,8 @@ SWGChannelReport::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&wfm_demod_report, pJson["WFMDemodReport"], "SWGWFMDemodReport", "SWGWFMDemodReport");
     
     ::SWGSDRangel::setValue(&wfm_mod_report, pJson["WFMModReport"], "SWGWFMModReport", "SWGWFMModReport");
+    
+    ::SWGSDRangel::setValue(&selcal_demod_report, pJson["SELCALDemodReport"], "SWGSELCALDemodReport", "SWGSELCALDemodReport");
     
 }
 
@@ -672,6 +703,9 @@ SWGChannelReport::asJsonObject() {
     if(m_direction_isSet){
         obj->insert("direction", QJsonValue(direction));
     }
+    if((acars_demod_report != nullptr) && (acars_demod_report->isSet())){
+        toJsonValue(QString("ACARSDemodReport"), acars_demod_report, obj, QString("SWGACARSDemodReport"));
+    }
     if((adsb_demod_report != nullptr) && (adsb_demod_report->isSet())){
         toJsonValue(QString("ADSBDemodReport"), adsb_demod_report, obj, QString("SWGADSBDemodReport"));
     }
@@ -689,6 +723,9 @@ SWGChannelReport::asJsonObject() {
     }
     if((am_mod_report != nullptr) && (am_mod_report->isSet())){
         toJsonValue(QString("AMModReport"), am_mod_report, obj, QString("SWGAMModReport"));
+    }
+    if((atv_demod_report != nullptr) && (atv_demod_report->isSet())){
+        toJsonValue(QString("ATVDemodReport"), atv_demod_report, obj, QString("SWGATVDemodReport"));
     }
     if((atv_mod_report != nullptr) && (atv_mod_report->isSet())){
         toJsonValue(QString("ATVModReport"), atv_mod_report, obj, QString("SWGATVModReport"));
@@ -729,23 +766,23 @@ SWGChannelReport::asJsonObject() {
     if((dsc_demod_report != nullptr) && (dsc_demod_report->isSet())){
         toJsonValue(QString("DSCDemodReport"), dsc_demod_report, obj, QString("SWGDSCDemodReport"));
     }
-    if((selcal_demod_report != nullptr) && (selcal_demod_report->isSet())){
-        toJsonValue(QString("SELCALDemodReport"), selcal_demod_report, obj, QString("SWGSELCALDemodReport"));
-    }
     if((dsd_demod_report != nullptr) && (dsd_demod_report->isSet())){
         toJsonValue(QString("DSDDemodReport"), dsd_demod_report, obj, QString("SWGDSDDemodReport"));
     }
     if((drone_id_demod_report != nullptr) && (drone_id_demod_report->isSet())){
         toJsonValue(QString("DroneIDDemodReport"), drone_id_demod_report, obj, QString("SWGDroneIDDemodReport"));
     }
+    if((dse_mod_report != nullptr) && (dse_mod_report->isSet())){
+        toJsonValue(QString("DSEModReport"), dse_mod_report, obj, QString("SWGDSEModReport"));
+    }
     if((end_of_train_demod_report != nullptr) && (end_of_train_demod_report->isSet())){
         toJsonValue(QString("EndOfTrainDemodReport"), end_of_train_demod_report, obj, QString("SWGEndOfTrainDemodReport"));
     }
-    if((ieee_802_15_4_mod_report != nullptr) && (ieee_802_15_4_mod_report->isSet())){
-        toJsonValue(QString("IEEE_802_15_4_ModReport"), ieee_802_15_4_mod_report, obj, QString("SWGIEEE_802_15_4_ModReport"));
-    }
     if((ieee_802_15_4_demod_report != nullptr) && (ieee_802_15_4_demod_report->isSet())){
         toJsonValue(QString("IEEE_802_15_4_DemodReport"), ieee_802_15_4_demod_report, obj, QString("SWGIEEE_802_15_4_DemodReport"));
+    }
+    if((ieee_802_15_4_mod_report != nullptr) && (ieee_802_15_4_mod_report->isSet())){
+        toJsonValue(QString("IEEE_802_15_4_ModReport"), ieee_802_15_4_mod_report, obj, QString("SWGIEEE_802_15_4_ModReport"));
     }
     if((file_sink_report != nullptr) && (file_sink_report->isSet())){
         toJsonValue(QString("FileSinkReport"), file_sink_report, obj, QString("SWGFileSinkReport"));
@@ -825,9 +862,6 @@ SWGChannelReport::asJsonObject() {
     if((rtty_demod_report != nullptr) && (rtty_demod_report->isSet())){
         toJsonValue(QString("RTTYDemodReport"), rtty_demod_report, obj, QString("SWGRTTYDemodReport"));
     }
-    if((psk31_demod_report != nullptr) && (psk31_demod_report->isSet())){
-        toJsonValue(QString("PSK31DemodReport"), psk31_demod_report, obj, QString("SWGPSK31DemodReport"));
-    }
     if((rtty_mod_report != nullptr) && (rtty_mod_report->isSet())){
         toJsonValue(QString("RTTYModReport"), rtty_mod_report, obj, QString("SWGRTTYModReport"));
     }
@@ -842,6 +876,9 @@ SWGChannelReport::asJsonObject() {
     }
     if((psk31_mod_report != nullptr) && (psk31_mod_report->isSet())){
         toJsonValue(QString("PSK31ModReport"), psk31_mod_report, obj, QString("SWGPSK31ModReport"));
+    }
+    if((psk31_demod_report != nullptr) && (psk31_demod_report->isSet())){
+        toJsonValue(QString("PSK31DemodReport"), psk31_demod_report, obj, QString("SWGPSK31DemodReport"));
     }
     if((sig_mf_file_sink_report != nullptr) && (sig_mf_file_sink_report->isSet())){
         toJsonValue(QString("SigMFFileSinkReport"), sig_mf_file_sink_report, obj, QString("SWGSigMFFileSinkReport"));
@@ -867,6 +904,9 @@ SWGChannelReport::asJsonObject() {
     if((wfm_mod_report != nullptr) && (wfm_mod_report->isSet())){
         toJsonValue(QString("WFMModReport"), wfm_mod_report, obj, QString("SWGWFMModReport"));
     }
+    if((selcal_demod_report != nullptr) && (selcal_demod_report->isSet())){
+        toJsonValue(QString("SELCALDemodReport"), selcal_demod_report, obj, QString("SWGSELCALDemodReport"));
+    }
 
     return obj;
 }
@@ -889,6 +929,16 @@ void
 SWGChannelReport::setDirection(qint32 direction) {
     this->direction = direction;
     this->m_direction_isSet = true;
+}
+
+SWGACARSDemodReport*
+SWGChannelReport::getAcarsDemodReport() {
+    return acars_demod_report;
+}
+void
+SWGChannelReport::setAcarsDemodReport(SWGACARSDemodReport* acars_demod_report) {
+    this->acars_demod_report = acars_demod_report;
+    this->m_acars_demod_report_isSet = true;
 }
 
 SWGADSBDemodReport*
@@ -949,6 +999,16 @@ void
 SWGChannelReport::setAmModReport(SWGAMModReport* am_mod_report) {
     this->am_mod_report = am_mod_report;
     this->m_am_mod_report_isSet = true;
+}
+
+SWGATVDemodReport*
+SWGChannelReport::getAtvDemodReport() {
+    return atv_demod_report;
+}
+void
+SWGChannelReport::setAtvDemodReport(SWGATVDemodReport* atv_demod_report) {
+    this->atv_demod_report = atv_demod_report;
+    this->m_atv_demod_report_isSet = true;
 }
 
 SWGATVModReport*
@@ -1081,19 +1141,6 @@ SWGChannelReport::setDscDemodReport(SWGDSCDemodReport* dsc_demod_report) {
     this->m_dsc_demod_report_isSet = true;
 }
 
-SWGSELCALDemodReport*
-SWGChannelReport::getSelcalDemodReport() {
-    return selcal_demod_report;
-}
-void
-SWGChannelReport::setSelcalDemodReport(SWGSELCALDemodReport* selcal_demod_report) {
-    if (this->selcal_demod_report != selcal_demod_report) {
-        delete this->selcal_demod_report;
-    }
-    this->selcal_demod_report = selcal_demod_report;
-    this->m_selcal_demod_report_isSet = true;
-}
-
 SWGDSDDemodReport*
 SWGChannelReport::getDsdDemodReport() {
     return dsd_demod_report;
@@ -1114,6 +1161,16 @@ SWGChannelReport::setDroneIdDemodReport(SWGDroneIDDemodReport* drone_id_demod_re
     this->m_drone_id_demod_report_isSet = true;
 }
 
+SWGDSEModReport*
+SWGChannelReport::getDseModReport() {
+    return dse_mod_report;
+}
+void
+SWGChannelReport::setDseModReport(SWGDSEModReport* dse_mod_report) {
+    this->dse_mod_report = dse_mod_report;
+    this->m_dse_mod_report_isSet = true;
+}
+
 SWGEndOfTrainDemodReport*
 SWGChannelReport::getEndOfTrainDemodReport() {
     return end_of_train_demod_report;
@@ -1124,16 +1181,6 @@ SWGChannelReport::setEndOfTrainDemodReport(SWGEndOfTrainDemodReport* end_of_trai
     this->m_end_of_train_demod_report_isSet = true;
 }
 
-SWGIEEE_802_15_4_ModReport*
-SWGChannelReport::getIeee802154ModReport() {
-    return ieee_802_15_4_mod_report;
-}
-void
-SWGChannelReport::setIeee802154ModReport(SWGIEEE_802_15_4_ModReport* ieee_802_15_4_mod_report) {
-    this->ieee_802_15_4_mod_report = ieee_802_15_4_mod_report;
-    this->m_ieee_802_15_4_mod_report_isSet = true;
-}
-
 SWGIEEE_802_15_4_DemodReport*
 SWGChannelReport::getIeee802154DemodReport() {
     return ieee_802_15_4_demod_report;
@@ -1142,6 +1189,16 @@ void
 SWGChannelReport::setIeee802154DemodReport(SWGIEEE_802_15_4_DemodReport* ieee_802_15_4_demod_report) {
     this->ieee_802_15_4_demod_report = ieee_802_15_4_demod_report;
     this->m_ieee_802_15_4_demod_report_isSet = true;
+}
+
+SWGIEEE_802_15_4_ModReport*
+SWGChannelReport::getIeee802154ModReport() {
+    return ieee_802_15_4_mod_report;
+}
+void
+SWGChannelReport::setIeee802154ModReport(SWGIEEE_802_15_4_ModReport* ieee_802_15_4_mod_report) {
+    this->ieee_802_15_4_mod_report = ieee_802_15_4_mod_report;
+    this->m_ieee_802_15_4_mod_report_isSet = true;
 }
 
 SWGFileSinkReport*
@@ -1404,16 +1461,6 @@ SWGChannelReport::setRttyDemodReport(SWGRTTYDemodReport* rtty_demod_report) {
     this->m_rtty_demod_report_isSet = true;
 }
 
-SWGPSK31DemodReport*
-SWGChannelReport::getPSK31DemodReport() {
-    return psk31_demod_report;
-}
-void
-SWGChannelReport::setPSK31DemodReport(SWGPSK31DemodReport* psk31_demod_report) {
-    this->psk31_demod_report = psk31_demod_report;
-    this->m_psk31_demod_report_isSet = true;
-}
-
 SWGRTTYModReport*
 SWGChannelReport::getRttyModReport() {
     return rtty_mod_report;
@@ -1462,6 +1509,16 @@ void
 SWGChannelReport::setPsk31ModReport(SWGPSK31ModReport* psk31_mod_report) {
     this->psk31_mod_report = psk31_mod_report;
     this->m_psk31_mod_report_isSet = true;
+}
+
+SWGPSK31DemodReport*
+SWGChannelReport::getPsk31DemodReport() {
+    return psk31_demod_report;
+}
+void
+SWGChannelReport::setPsk31DemodReport(SWGPSK31DemodReport* psk31_demod_report) {
+    this->psk31_demod_report = psk31_demod_report;
+    this->m_psk31_demod_report_isSet = true;
 }
 
 SWGSigMFFileSinkReport*
@@ -1544,6 +1601,16 @@ SWGChannelReport::setWfmModReport(SWGWFMModReport* wfm_mod_report) {
     this->m_wfm_mod_report_isSet = true;
 }
 
+SWGSELCALDemodReport*
+SWGChannelReport::getSelcalDemodReport() {
+    return selcal_demod_report;
+}
+void
+SWGChannelReport::setSelcalDemodReport(SWGSELCALDemodReport* selcal_demod_report) {
+    this->selcal_demod_report = selcal_demod_report;
+    this->m_selcal_demod_report_isSet = true;
+}
+
 
 bool
 SWGChannelReport::isSet(){
@@ -1553,6 +1620,9 @@ SWGChannelReport::isSet(){
             isObjectUpdated = true; break;
         }
         if(m_direction_isSet){
+            isObjectUpdated = true; break;
+        }
+        if(acars_demod_report && acars_demod_report->isSet()){
             isObjectUpdated = true; break;
         }
         if(adsb_demod_report && adsb_demod_report->isSet()){
@@ -1571,6 +1641,9 @@ SWGChannelReport::isSet(){
             isObjectUpdated = true; break;
         }
         if(am_mod_report && am_mod_report->isSet()){
+            isObjectUpdated = true; break;
+        }
+        if(atv_demod_report && atv_demod_report->isSet()){
             isObjectUpdated = true; break;
         }
         if(atv_mod_report && atv_mod_report->isSet()){
@@ -1612,22 +1685,22 @@ SWGChannelReport::isSet(){
         if(dsc_demod_report && dsc_demod_report->isSet()){
             isObjectUpdated = true; break;
         }
-        if(selcal_demod_report && selcal_demod_report->isSet()){
-            isObjectUpdated = true; break;
-        }
         if(dsd_demod_report && dsd_demod_report->isSet()){
             isObjectUpdated = true; break;
         }
         if(drone_id_demod_report && drone_id_demod_report->isSet()){
             isObjectUpdated = true; break;
         }
+        if(dse_mod_report && dse_mod_report->isSet()){
+            isObjectUpdated = true; break;
+        }
         if(end_of_train_demod_report && end_of_train_demod_report->isSet()){
             isObjectUpdated = true; break;
         }
-        if(ieee_802_15_4_mod_report && ieee_802_15_4_mod_report->isSet()){
+        if(ieee_802_15_4_demod_report && ieee_802_15_4_demod_report->isSet()){
             isObjectUpdated = true; break;
         }
-        if(ieee_802_15_4_demod_report && ieee_802_15_4_demod_report->isSet()){
+        if(ieee_802_15_4_mod_report && ieee_802_15_4_mod_report->isSet()){
             isObjectUpdated = true; break;
         }
         if(file_sink_report && file_sink_report->isSet()){
@@ -1750,7 +1823,11 @@ SWGChannelReport::isSet(){
         if(wfm_mod_report && wfm_mod_report->isSet()){
             isObjectUpdated = true; break;
         }
+        if(selcal_demod_report && selcal_demod_report->isSet()){
+            isObjectUpdated = true; break;
+        }
     }while(false);
     return isObjectUpdated;
 }
 }
+

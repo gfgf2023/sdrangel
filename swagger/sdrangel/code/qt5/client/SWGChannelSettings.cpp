@@ -36,6 +36,8 @@ SWGChannelSettings::SWGChannelSettings() {
     m_originator_device_set_index_isSet = false;
     originator_channel_index = 0;
     m_originator_channel_index_isSet = false;
+    acars_demod_settings = nullptr;
+    m_acars_demod_settings_isSet = false;
     adsb_demod_settings = nullptr;
     m_adsb_demod_settings_isSet = false;
     ais_demod_settings = nullptr;
@@ -81,13 +83,13 @@ SWGChannelSettings::SWGChannelSettings() {
     doa2_settings = nullptr;
     m_doa2_settings_isSet = false;
     dsc_demod_settings = nullptr;
-    selcal_demod_settings = nullptr;
     m_dsc_demod_settings_isSet = false;
-    m_selcal_demod_settings_isSet = false;
     dsd_demod_settings = nullptr;
     m_dsd_demod_settings_isSet = false;
     drone_id_demod_settings = nullptr;
     m_drone_id_demod_settings_isSet = false;
+    dse_mod_settings = nullptr;
+    m_dse_mod_settings_isSet = false;
     end_of_train_demod_settings = nullptr;
     m_end_of_train_demod_settings_isSet = false;
     file_sink_settings = nullptr;
@@ -112,10 +114,10 @@ SWGChannelSettings::SWGChannelSettings() {
     m_inmarsat_demod_settings_isSet = false;
     interferometer_settings = nullptr;
     m_interferometer_settings_isSet = false;
-    ieee_802_15_4_mod_settings = nullptr;
-    m_ieee_802_15_4_mod_settings_isSet = false;
     ieee_802_15_4_demod_settings = nullptr;
     m_ieee_802_15_4_demod_settings_isSet = false;
+    ieee_802_15_4_mod_settings = nullptr;
+    m_ieee_802_15_4_mod_settings_isSet = false;
     m17_demod_settings = nullptr;
     m_m17_demod_settings_isSet = false;
     m17_mod_settings = nullptr;
@@ -184,6 +186,8 @@ SWGChannelSettings::SWGChannelSettings() {
     m_wfm_demod_settings_isSet = false;
     wfm_mod_settings = nullptr;
     m_wfm_mod_settings_isSet = false;
+    selcal_demod_settings = nullptr;
+    m_selcal_demod_settings_isSet = false;
 }
 
 SWGChannelSettings::~SWGChannelSettings() {
@@ -200,6 +204,8 @@ SWGChannelSettings::init() {
     m_originator_device_set_index_isSet = false;
     originator_channel_index = 0;
     m_originator_channel_index_isSet = false;
+    acars_demod_settings = new SWGACARSDemodSettings();
+    m_acars_demod_settings_isSet = false;
     adsb_demod_settings = new SWGADSBDemodSettings();
     m_adsb_demod_settings_isSet = false;
     ais_demod_settings = new SWGAISDemodSettings();
@@ -245,13 +251,13 @@ SWGChannelSettings::init() {
     doa2_settings = new SWGDOA2Settings();
     m_doa2_settings_isSet = false;
     dsc_demod_settings = new SWGDSCDemodSettings();
-    selcal_demod_settings = new SWGSELCALDemodSettings();
     m_dsc_demod_settings_isSet = false;
-    m_selcal_demod_settings_isSet = false;
     dsd_demod_settings = new SWGDSDDemodSettings();
     m_dsd_demod_settings_isSet = false;
     drone_id_demod_settings = new SWGDroneIDDemodSettings();
     m_drone_id_demod_settings_isSet = false;
+    dse_mod_settings = new SWGDSEModSettings();
+    m_dse_mod_settings_isSet = false;
     end_of_train_demod_settings = new SWGEndOfTrainDemodSettings();
     m_end_of_train_demod_settings_isSet = false;
     file_sink_settings = new SWGFileSinkSettings();
@@ -276,10 +282,10 @@ SWGChannelSettings::init() {
     m_inmarsat_demod_settings_isSet = false;
     interferometer_settings = new SWGInterferometerSettings();
     m_interferometer_settings_isSet = false;
-    ieee_802_15_4_mod_settings = new SWGIEEE_802_15_4_ModSettings();
-    m_ieee_802_15_4_mod_settings_isSet = false;
     ieee_802_15_4_demod_settings = new SWGIEEE_802_15_4_DemodSettings();
     m_ieee_802_15_4_demod_settings_isSet = false;
+    ieee_802_15_4_mod_settings = new SWGIEEE_802_15_4_ModSettings();
+    m_ieee_802_15_4_mod_settings_isSet = false;
     m17_demod_settings = new SWGM17DemodSettings();
     m_m17_demod_settings_isSet = false;
     m17_mod_settings = new SWGM17ModSettings();
@@ -312,6 +318,8 @@ SWGChannelSettings::init() {
     m_pager_demod_settings_isSet = false;
     psk31_mod_settings = new SWGPSK31ModSettings();
     m_psk31_mod_settings_isSet = false;
+    psk31_demod_settings = new SWGPSK31DemodSettings();
+    m_psk31_demod_settings_isSet = false;
     radio_astronomy_settings = new SWGRadioAstronomySettings();
     m_radio_astronomy_settings_isSet = false;
     radio_clock_settings = new SWGRadioClockSettings();
@@ -326,8 +334,6 @@ SWGChannelSettings::init() {
     m_remote_tcp_sink_settings_isSet = false;
     rtty_demod_settings = new SWGRTTYDemodSettings();
     m_rtty_demod_settings_isSet = false;
-    psk31_demod_settings = new SWGPSK31DemodSettings();
-    m_psk31_demod_settings_isSet = false;
     rtty_mod_settings = new SWGRTTYModSettings();
     m_rtty_mod_settings_isSet = false;
     sig_mf_file_sink_settings = new SWGSigMFFileSinkSettings();
@@ -348,6 +354,8 @@ SWGChannelSettings::init() {
     m_wfm_demod_settings_isSet = false;
     wfm_mod_settings = new SWGWFMModSettings();
     m_wfm_mod_settings_isSet = false;
+    selcal_demod_settings = new SWGSELCALDemodSettings();
+    m_selcal_demod_settings_isSet = false;
 }
 
 void
@@ -358,6 +366,9 @@ SWGChannelSettings::cleanup() {
 
 
 
+    if(acars_demod_settings != nullptr) { 
+        delete acars_demod_settings;
+    }
     if(adsb_demod_settings != nullptr) { 
         delete adsb_demod_settings;
     }
@@ -376,7 +387,7 @@ SWGChannelSettings::cleanup() {
     if(apt_demod_settings != nullptr) { 
         delete apt_demod_settings;
     }
-    if(wefax_demod_settings != nullptr) {
+    if(wefax_demod_settings != nullptr) { 
         delete wefax_demod_settings;
     }
     if(atv_demod_settings != nullptr) { 
@@ -391,7 +402,7 @@ SWGChannelSettings::cleanup() {
     if(bfm_demod_settings != nullptr) { 
         delete bfm_demod_settings;
     }
-    if(bfm_mod_settings != nullptr) {
+    if(bfm_mod_settings != nullptr) { 
         delete bfm_mod_settings;
     }
     if(channel_analyzer_settings != nullptr) { 
@@ -427,14 +438,14 @@ SWGChannelSettings::cleanup() {
     if(dsc_demod_settings != nullptr) { 
         delete dsc_demod_settings;
     }
-    if(selcal_demod_settings != nullptr) {
-        delete selcal_demod_settings;
-    }
     if(dsd_demod_settings != nullptr) { 
         delete dsd_demod_settings;
     }
     if(drone_id_demod_settings != nullptr) { 
         delete drone_id_demod_settings;
+    }
+    if(dse_mod_settings != nullptr) { 
+        delete dse_mod_settings;
     }
     if(end_of_train_demod_settings != nullptr) { 
         delete end_of_train_demod_settings;
@@ -472,11 +483,11 @@ SWGChannelSettings::cleanup() {
     if(interferometer_settings != nullptr) { 
         delete interferometer_settings;
     }
-    if(ieee_802_15_4_mod_settings != nullptr) { 
-        delete ieee_802_15_4_mod_settings;
-    }
     if(ieee_802_15_4_demod_settings != nullptr) { 
         delete ieee_802_15_4_demod_settings;
+    }
+    if(ieee_802_15_4_mod_settings != nullptr) { 
+        delete ieee_802_15_4_mod_settings;
     }
     if(m17_demod_settings != nullptr) { 
         delete m17_demod_settings;
@@ -526,6 +537,9 @@ SWGChannelSettings::cleanup() {
     if(psk31_mod_settings != nullptr) { 
         delete psk31_mod_settings;
     }
+    if(psk31_demod_settings != nullptr) { 
+        delete psk31_demod_settings;
+    }
     if(radio_astronomy_settings != nullptr) { 
         delete radio_astronomy_settings;
     }
@@ -546,9 +560,6 @@ SWGChannelSettings::cleanup() {
     }
     if(rtty_demod_settings != nullptr) { 
         delete rtty_demod_settings;
-    }
-    if(psk31_demod_settings != nullptr) {
-        delete psk31_demod_settings;
     }
     if(rtty_mod_settings != nullptr) { 
         delete rtty_mod_settings;
@@ -580,6 +591,9 @@ SWGChannelSettings::cleanup() {
     if(wfm_mod_settings != nullptr) { 
         delete wfm_mod_settings;
     }
+    if(selcal_demod_settings != nullptr) { 
+        delete selcal_demod_settings;
+    }
 }
 
 SWGChannelSettings*
@@ -601,6 +615,8 @@ SWGChannelSettings::fromJsonObject(QJsonObject &pJson) {
     
     ::SWGSDRangel::setValue(&originator_channel_index, pJson["originatorChannelIndex"], "qint32", "");
     
+    ::SWGSDRangel::setValue(&acars_demod_settings, pJson["ACARSDemodSettings"], "SWGACARSDemodSettings", "SWGACARSDemodSettings");
+    
     ::SWGSDRangel::setValue(&adsb_demod_settings, pJson["ADSBDemodSettings"], "SWGADSBDemodSettings", "SWGADSBDemodSettings");
     
     ::SWGSDRangel::setValue(&ais_demod_settings, pJson["AISDemodSettings"], "SWGAISDemodSettings", "SWGAISDemodSettings");
@@ -612,6 +628,7 @@ SWGChannelSettings::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&am_mod_settings, pJson["AMModSettings"], "SWGAMModSettings", "SWGAMModSettings");
     
     ::SWGSDRangel::setValue(&apt_demod_settings, pJson["APTDemodSettings"], "SWGAPTDemodSettings", "SWGAPTDemodSettings");
+    
     ::SWGSDRangel::setValue(&wefax_demod_settings, pJson["WefaxDemodSettings"], "SWGWefaxDemodSettings", "SWGWefaxDemodSettings");
     
     ::SWGSDRangel::setValue(&atv_demod_settings, pJson["ATVDemodSettings"], "SWGATVDemodSettings", "SWGATVDemodSettings");
@@ -621,6 +638,7 @@ SWGChannelSettings::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&beam_steering_cw_mod_settings, pJson["BeamSteeringCWModSettings"], "SWGBeamSteeringCWModSettings", "SWGBeamSteeringCWModSettings");
     
     ::SWGSDRangel::setValue(&bfm_demod_settings, pJson["BFMDemodSettings"], "SWGBFMDemodSettings", "SWGBFMDemodSettings");
+    
     ::SWGSDRangel::setValue(&bfm_mod_settings, pJson["BFMModSettings"], "SWGBFMModSettings", "SWGBFMModSettings");
     
     ::SWGSDRangel::setValue(&channel_analyzer_settings, pJson["ChannelAnalyzerSettings"], "SWGChannelAnalyzerSettings", "SWGChannelAnalyzerSettings");
@@ -644,11 +662,12 @@ SWGChannelSettings::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&doa2_settings, pJson["DOA2Settings"], "SWGDOA2Settings", "SWGDOA2Settings");
     
     ::SWGSDRangel::setValue(&dsc_demod_settings, pJson["DSCDemodSettings"], "SWGDSCDemodSettings", "SWGDSCDemodSettings");
-    ::SWGSDRangel::setValue(&selcal_demod_settings, pJson["SELCALDemodSettings"], "SWGSELCALDemodSettings", "SWGSELCALDemodSettings");
     
     ::SWGSDRangel::setValue(&dsd_demod_settings, pJson["DSDDemodSettings"], "SWGDSDDemodSettings", "SWGDSDDemodSettings");
     
     ::SWGSDRangel::setValue(&drone_id_demod_settings, pJson["DroneIDDemodSettings"], "SWGDroneIDDemodSettings", "SWGDroneIDDemodSettings");
+    
+    ::SWGSDRangel::setValue(&dse_mod_settings, pJson["DSEModSettings"], "SWGDSEModSettings", "SWGDSEModSettings");
     
     ::SWGSDRangel::setValue(&end_of_train_demod_settings, pJson["EndOfTrainDemodSettings"], "SWGEndOfTrainDemodSettings", "SWGEndOfTrainDemodSettings");
     
@@ -674,9 +693,9 @@ SWGChannelSettings::fromJsonObject(QJsonObject &pJson) {
     
     ::SWGSDRangel::setValue(&interferometer_settings, pJson["InterferometerSettings"], "SWGInterferometerSettings", "SWGInterferometerSettings");
     
-    ::SWGSDRangel::setValue(&ieee_802_15_4_mod_settings, pJson["IEEE_802_15_4_ModSettings"], "SWGIEEE_802_15_4_ModSettings", "SWGIEEE_802_15_4_ModSettings");
-    
     ::SWGSDRangel::setValue(&ieee_802_15_4_demod_settings, pJson["IEEE_802_15_4_DemodSettings"], "SWGIEEE_802_15_4_DemodSettings", "SWGIEEE_802_15_4_DemodSettings");
+    
+    ::SWGSDRangel::setValue(&ieee_802_15_4_mod_settings, pJson["IEEE_802_15_4_ModSettings"], "SWGIEEE_802_15_4_ModSettings", "SWGIEEE_802_15_4_ModSettings");
     
     ::SWGSDRangel::setValue(&m17_demod_settings, pJson["M17DemodSettings"], "SWGM17DemodSettings", "SWGM17DemodSettings");
     
@@ -710,6 +729,8 @@ SWGChannelSettings::fromJsonObject(QJsonObject &pJson) {
     
     ::SWGSDRangel::setValue(&psk31_mod_settings, pJson["PSK31ModSettings"], "SWGPSK31ModSettings", "SWGPSK31ModSettings");
     
+    ::SWGSDRangel::setValue(&psk31_demod_settings, pJson["PSK31DemodSettings"], "SWGPSK31DemodSettings", "SWGPSK31DemodSettings");
+    
     ::SWGSDRangel::setValue(&radio_astronomy_settings, pJson["RadioAstronomySettings"], "SWGRadioAstronomySettings", "SWGRadioAstronomySettings");
     
     ::SWGSDRangel::setValue(&radio_clock_settings, pJson["RadioClockSettings"], "SWGRadioClockSettings", "SWGRadioClockSettings");
@@ -723,7 +744,6 @@ SWGChannelSettings::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&remote_tcp_sink_settings, pJson["RemoteTCPSinkSettings"], "SWGRemoteTCPSinkSettings", "SWGRemoteTCPSinkSettings");
     
     ::SWGSDRangel::setValue(&rtty_demod_settings, pJson["RTTYDemodSettings"], "SWGRTTYDemodSettings", "SWGRTTYDemodSettings");
-    ::SWGSDRangel::setValue(&psk31_demod_settings, pJson["PSK31DemodSettings"], "SWGPSK31DemodSettings", "SWGPSK31DemodSettings");
     
     ::SWGSDRangel::setValue(&rtty_mod_settings, pJson["RTTYModSettings"], "SWGRTTYModSettings", "SWGRTTYModSettings");
     
@@ -744,6 +764,8 @@ SWGChannelSettings::fromJsonObject(QJsonObject &pJson) {
     ::SWGSDRangel::setValue(&wfm_demod_settings, pJson["WFMDemodSettings"], "SWGWFMDemodSettings", "SWGWFMDemodSettings");
     
     ::SWGSDRangel::setValue(&wfm_mod_settings, pJson["WFMModSettings"], "SWGWFMModSettings", "SWGWFMModSettings");
+    
+    ::SWGSDRangel::setValue(&selcal_demod_settings, pJson["SELCALDemodSettings"], "SWGSELCALDemodSettings", "SWGSELCALDemodSettings");
     
 }
 
@@ -772,6 +794,9 @@ SWGChannelSettings::asJsonObject() {
     }
     if(m_originator_channel_index_isSet){
         obj->insert("originatorChannelIndex", QJsonValue(originator_channel_index));
+    }
+    if((acars_demod_settings != nullptr) && (acars_demod_settings->isSet())){
+        toJsonValue(QString("ACARSDemodSettings"), acars_demod_settings, obj, QString("SWGACARSDemodSettings"));
     }
     if((adsb_demod_settings != nullptr) && (adsb_demod_settings->isSet())){
         toJsonValue(QString("ADSBDemodSettings"), adsb_demod_settings, obj, QString("SWGADSBDemodSettings"));
@@ -842,14 +867,14 @@ SWGChannelSettings::asJsonObject() {
     if((dsc_demod_settings != nullptr) && (dsc_demod_settings->isSet())){
         toJsonValue(QString("DSCDemodSettings"), dsc_demod_settings, obj, QString("SWGDSCDemodSettings"));
     }
-    if((selcal_demod_settings != nullptr) && (selcal_demod_settings->isSet())){
-        toJsonValue(QString("SELCALDemodSettings"), selcal_demod_settings, obj, QString("SWGSELCALDemodSettings"));
-    }
     if((dsd_demod_settings != nullptr) && (dsd_demod_settings->isSet())){
         toJsonValue(QString("DSDDemodSettings"), dsd_demod_settings, obj, QString("SWGDSDDemodSettings"));
     }
     if((drone_id_demod_settings != nullptr) && (drone_id_demod_settings->isSet())){
         toJsonValue(QString("DroneIDDemodSettings"), drone_id_demod_settings, obj, QString("SWGDroneIDDemodSettings"));
+    }
+    if((dse_mod_settings != nullptr) && (dse_mod_settings->isSet())){
+        toJsonValue(QString("DSEModSettings"), dse_mod_settings, obj, QString("SWGDSEModSettings"));
     }
     if((end_of_train_demod_settings != nullptr) && (end_of_train_demod_settings->isSet())){
         toJsonValue(QString("EndOfTrainDemodSettings"), end_of_train_demod_settings, obj, QString("SWGEndOfTrainDemodSettings"));
@@ -887,11 +912,11 @@ SWGChannelSettings::asJsonObject() {
     if((interferometer_settings != nullptr) && (interferometer_settings->isSet())){
         toJsonValue(QString("InterferometerSettings"), interferometer_settings, obj, QString("SWGInterferometerSettings"));
     }
-    if((ieee_802_15_4_mod_settings != nullptr) && (ieee_802_15_4_mod_settings->isSet())){
-        toJsonValue(QString("IEEE_802_15_4_ModSettings"), ieee_802_15_4_mod_settings, obj, QString("SWGIEEE_802_15_4_ModSettings"));
-    }
     if((ieee_802_15_4_demod_settings != nullptr) && (ieee_802_15_4_demod_settings->isSet())){
         toJsonValue(QString("IEEE_802_15_4_DemodSettings"), ieee_802_15_4_demod_settings, obj, QString("SWGIEEE_802_15_4_DemodSettings"));
+    }
+    if((ieee_802_15_4_mod_settings != nullptr) && (ieee_802_15_4_mod_settings->isSet())){
+        toJsonValue(QString("IEEE_802_15_4_ModSettings"), ieee_802_15_4_mod_settings, obj, QString("SWGIEEE_802_15_4_ModSettings"));
     }
     if((m17_demod_settings != nullptr) && (m17_demod_settings->isSet())){
         toJsonValue(QString("M17DemodSettings"), m17_demod_settings, obj, QString("SWGM17DemodSettings"));
@@ -941,6 +966,9 @@ SWGChannelSettings::asJsonObject() {
     if((psk31_mod_settings != nullptr) && (psk31_mod_settings->isSet())){
         toJsonValue(QString("PSK31ModSettings"), psk31_mod_settings, obj, QString("SWGPSK31ModSettings"));
     }
+    if((psk31_demod_settings != nullptr) && (psk31_demod_settings->isSet())){
+        toJsonValue(QString("PSK31DemodSettings"), psk31_demod_settings, obj, QString("SWGPSK31DemodSettings"));
+    }
     if((radio_astronomy_settings != nullptr) && (radio_astronomy_settings->isSet())){
         toJsonValue(QString("RadioAstronomySettings"), radio_astronomy_settings, obj, QString("SWGRadioAstronomySettings"));
     }
@@ -961,9 +989,6 @@ SWGChannelSettings::asJsonObject() {
     }
     if((rtty_demod_settings != nullptr) && (rtty_demod_settings->isSet())){
         toJsonValue(QString("RTTYDemodSettings"), rtty_demod_settings, obj, QString("SWGRTTYDemodSettings"));
-    }
-    if((psk31_demod_settings != nullptr) && (psk31_demod_settings->isSet())){
-        toJsonValue(QString("PSK31DemodSettings"), psk31_demod_settings, obj, QString("SWGPSK31DemodSettings"));
     }
     if((rtty_mod_settings != nullptr) && (rtty_mod_settings->isSet())){
         toJsonValue(QString("RTTYModSettings"), rtty_mod_settings, obj, QString("SWGRTTYModSettings"));
@@ -994,6 +1019,9 @@ SWGChannelSettings::asJsonObject() {
     }
     if((wfm_mod_settings != nullptr) && (wfm_mod_settings->isSet())){
         toJsonValue(QString("WFMModSettings"), wfm_mod_settings, obj, QString("SWGWFMModSettings"));
+    }
+    if((selcal_demod_settings != nullptr) && (selcal_demod_settings->isSet())){
+        toJsonValue(QString("SELCALDemodSettings"), selcal_demod_settings, obj, QString("SWGSELCALDemodSettings"));
     }
 
     return obj;
@@ -1037,6 +1065,16 @@ void
 SWGChannelSettings::setOriginatorChannelIndex(qint32 originator_channel_index) {
     this->originator_channel_index = originator_channel_index;
     this->m_originator_channel_index_isSet = true;
+}
+
+SWGACARSDemodSettings*
+SWGChannelSettings::getAcarsDemodSettings() {
+    return acars_demod_settings;
+}
+void
+SWGChannelSettings::setAcarsDemodSettings(SWGACARSDemodSettings* acars_demod_settings) {
+    this->acars_demod_settings = acars_demod_settings;
+    this->m_acars_demod_settings_isSet = true;
 }
 
 SWGADSBDemodSettings*
@@ -1269,19 +1307,6 @@ SWGChannelSettings::setDscDemodSettings(SWGDSCDemodSettings* dsc_demod_settings)
     this->m_dsc_demod_settings_isSet = true;
 }
 
-SWGSELCALDemodSettings*
-SWGChannelSettings::getSelcalDemodSettings() {
-    return selcal_demod_settings;
-}
-void
-SWGChannelSettings::setSelcalDemodSettings(SWGSELCALDemodSettings* selcal_demod_settings) {
-    if (this->selcal_demod_settings != selcal_demod_settings) {
-        delete this->selcal_demod_settings;
-    }
-    this->selcal_demod_settings = selcal_demod_settings;
-    this->m_selcal_demod_settings_isSet = true;
-}
-
 SWGDSDDemodSettings*
 SWGChannelSettings::getDsdDemodSettings() {
     return dsd_demod_settings;
@@ -1300,6 +1325,16 @@ void
 SWGChannelSettings::setDroneIdDemodSettings(SWGDroneIDDemodSettings* drone_id_demod_settings) {
     this->drone_id_demod_settings = drone_id_demod_settings;
     this->m_drone_id_demod_settings_isSet = true;
+}
+
+SWGDSEModSettings*
+SWGChannelSettings::getDseModSettings() {
+    return dse_mod_settings;
+}
+void
+SWGChannelSettings::setDseModSettings(SWGDSEModSettings* dse_mod_settings) {
+    this->dse_mod_settings = dse_mod_settings;
+    this->m_dse_mod_settings_isSet = true;
 }
 
 SWGEndOfTrainDemodSettings*
@@ -1422,16 +1457,6 @@ SWGChannelSettings::setInterferometerSettings(SWGInterferometerSettings* interfe
     this->m_interferometer_settings_isSet = true;
 }
 
-SWGIEEE_802_15_4_ModSettings*
-SWGChannelSettings::getIeee802154ModSettings() {
-    return ieee_802_15_4_mod_settings;
-}
-void
-SWGChannelSettings::setIeee802154ModSettings(SWGIEEE_802_15_4_ModSettings* ieee_802_15_4_mod_settings) {
-    this->ieee_802_15_4_mod_settings = ieee_802_15_4_mod_settings;
-    this->m_ieee_802_15_4_mod_settings_isSet = true;
-}
-
 SWGIEEE_802_15_4_DemodSettings*
 SWGChannelSettings::getIeee802154DemodSettings() {
     return ieee_802_15_4_demod_settings;
@@ -1440,6 +1465,16 @@ void
 SWGChannelSettings::setIeee802154DemodSettings(SWGIEEE_802_15_4_DemodSettings* ieee_802_15_4_demod_settings) {
     this->ieee_802_15_4_demod_settings = ieee_802_15_4_demod_settings;
     this->m_ieee_802_15_4_demod_settings_isSet = true;
+}
+
+SWGIEEE_802_15_4_ModSettings*
+SWGChannelSettings::getIeee802154ModSettings() {
+    return ieee_802_15_4_mod_settings;
+}
+void
+SWGChannelSettings::setIeee802154ModSettings(SWGIEEE_802_15_4_ModSettings* ieee_802_15_4_mod_settings) {
+    this->ieee_802_15_4_mod_settings = ieee_802_15_4_mod_settings;
+    this->m_ieee_802_15_4_mod_settings_isSet = true;
 }
 
 SWGM17DemodSettings*
@@ -1602,6 +1637,16 @@ SWGChannelSettings::setPsk31ModSettings(SWGPSK31ModSettings* psk31_mod_settings)
     this->m_psk31_mod_settings_isSet = true;
 }
 
+SWGPSK31DemodSettings*
+SWGChannelSettings::getPsk31DemodSettings() {
+    return psk31_demod_settings;
+}
+void
+SWGChannelSettings::setPsk31DemodSettings(SWGPSK31DemodSettings* psk31_demod_settings) {
+    this->psk31_demod_settings = psk31_demod_settings;
+    this->m_psk31_demod_settings_isSet = true;
+}
+
 SWGRadioAstronomySettings*
 SWGChannelSettings::getRadioAstronomySettings() {
     return radio_astronomy_settings;
@@ -1670,16 +1715,6 @@ void
 SWGChannelSettings::setRttyDemodSettings(SWGRTTYDemodSettings* rtty_demod_settings) {
     this->rtty_demod_settings = rtty_demod_settings;
     this->m_rtty_demod_settings_isSet = true;
-}
-
-SWGPSK31DemodSettings*
-SWGChannelSettings::getPSK31DemodSettings() {
-    return psk31_demod_settings;
-}
-void
-SWGChannelSettings::setPSK31DemodSettings(SWGPSK31DemodSettings* psk31_demod_settings) {
-    this->psk31_demod_settings = psk31_demod_settings;
-    this->m_psk31_demod_settings_isSet = true;
 }
 
 SWGRTTYModSettings*
@@ -1782,6 +1817,16 @@ SWGChannelSettings::setWfmModSettings(SWGWFMModSettings* wfm_mod_settings) {
     this->m_wfm_mod_settings_isSet = true;
 }
 
+SWGSELCALDemodSettings*
+SWGChannelSettings::getSelcalDemodSettings() {
+    return selcal_demod_settings;
+}
+void
+SWGChannelSettings::setSelcalDemodSettings(SWGSELCALDemodSettings* selcal_demod_settings) {
+    this->selcal_demod_settings = selcal_demod_settings;
+    this->m_selcal_demod_settings_isSet = true;
+}
+
 
 bool
 SWGChannelSettings::isSet(){
@@ -1797,6 +1842,9 @@ SWGChannelSettings::isSet(){
             isObjectUpdated = true; break;
         }
         if(m_originator_channel_index_isSet){
+            isObjectUpdated = true; break;
+        }
+        if(acars_demod_settings && acars_demod_settings->isSet()){
             isObjectUpdated = true; break;
         }
         if(adsb_demod_settings && adsb_demod_settings->isSet()){
@@ -1868,13 +1916,13 @@ SWGChannelSettings::isSet(){
         if(dsc_demod_settings && dsc_demod_settings->isSet()){
             isObjectUpdated = true; break;
         }
-        if(selcal_demod_settings && selcal_demod_settings->isSet()){
-            isObjectUpdated = true; break;
-        }
         if(dsd_demod_settings && dsd_demod_settings->isSet()){
             isObjectUpdated = true; break;
         }
         if(drone_id_demod_settings && drone_id_demod_settings->isSet()){
+            isObjectUpdated = true; break;
+        }
+        if(dse_mod_settings && dse_mod_settings->isSet()){
             isObjectUpdated = true; break;
         }
         if(end_of_train_demod_settings && end_of_train_demod_settings->isSet()){
@@ -1913,10 +1961,10 @@ SWGChannelSettings::isSet(){
         if(interferometer_settings && interferometer_settings->isSet()){
             isObjectUpdated = true; break;
         }
-        if(ieee_802_15_4_mod_settings && ieee_802_15_4_mod_settings->isSet()){
+        if(ieee_802_15_4_demod_settings && ieee_802_15_4_demod_settings->isSet()){
             isObjectUpdated = true; break;
         }
-        if(ieee_802_15_4_demod_settings && ieee_802_15_4_demod_settings->isSet()){
+        if(ieee_802_15_4_mod_settings && ieee_802_15_4_mod_settings->isSet()){
             isObjectUpdated = true; break;
         }
         if(m17_demod_settings && m17_demod_settings->isSet()){
@@ -2021,7 +2069,11 @@ SWGChannelSettings::isSet(){
         if(wfm_mod_settings && wfm_mod_settings->isSet()){
             isObjectUpdated = true; break;
         }
+        if(selcal_demod_settings && selcal_demod_settings->isSet()){
+            isObjectUpdated = true; break;
+        }
     }while(false);
     return isObjectUpdated;
 }
 }
+

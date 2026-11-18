@@ -22,6 +22,7 @@
 #include "webapiutils.h"
 
 const QMap<QString, QString> WebAPIUtils::m_channelURIToSettingsKey = {
+    {"sdrangel.channel.acarsdemod", "ACARSDemodSettings"},
     {"sdrangel.channel.adsbdemod", "ADSBDemodSettings"},
     {"sdrangel.channel.modais", "AISModSettings"},
     {"sdrangel.channel.aisdemod", "AISDemodSettings"},
@@ -52,6 +53,7 @@ const QMap<QString, QString> WebAPIUtils::m_channelURIToSettingsKey = {
     {"sdrangel.channel.selcaldemod", "SELCALDemodSettings"},
     {"sdrangel.channel.dsddemod", "DSDDemodSettings"},
     {"sdrangel.channel.droneiddemod", "DroneIDDemodSettings"},
+    {"sdrangel.channeltx.moddse", "DSEModSettings"},
     {"sdrangel.channel.endoftraindemod", "EndOfTrainDemodSettings"},
     {"sdrangel.channel.filesink", "FileSinkSettings"},
     {"sdrangel.channeltx.filesource", "FileSourceSettings"},
@@ -164,6 +166,7 @@ const QMap<QString, QString> WebAPIUtils::m_deviceIdToSettingsKey = {
 };
 
 const QMap<QString, QString> WebAPIUtils::m_channelTypeToSettingsKey = {
+    {"ACARSDemod", "ACARSDemodSettings"},
     {"ADSBDemod", "ADSBDemodSettings"},
     {"AISDemod", "AISDemodSettings"},
     {"AISMod", "AISModSettings"},
@@ -191,6 +194,7 @@ const QMap<QString, QString> WebAPIUtils::m_channelTypeToSettingsKey = {
     {"SELCALDemod", "SELCALDemodSettings"},
     {"DSDDemod", "DSDDemodSettings"},
     {"DroneIDDemod", "DroneIDDemodSettings"},
+    {"DSEMod", "DSEModSettings"},
     {"EndOfTrainDemod", "EndOfTrainDemodSettings"},
     {"FileSink", "FileSinkSettings"},
     {"FileSource", "FileSourceSettings"},
@@ -244,6 +248,8 @@ const QMap<QString, QString> WebAPIUtils::m_channelTypeToActionsKey = {
     {"WefaxDemod", "WefaxDemodActions"},
     {"DVBDemod", "DVBDemodActions"},
     {"DRMDemod", "DRMDemodActions"},
+    {"DSDDemod", "DSDDemodActions"},
+    {"DSEMod", "DSEModActions"},
     {"FileSink", "FileSinkActions"},
     {"FileSource", "FileSourceActions"},
     {"FreqScanner", "FreqScannerActions"},
@@ -343,6 +349,7 @@ const QMap<QString, QString> WebAPIUtils::m_mimoDeviceHwIdToActionsKey = {
 const QMap<QString, QString> WebAPIUtils::m_featureTypeToSettingsKey = {
     {"AFC", "AFCSettings"},
     {"AIS", "AISSettings"},
+    {"Aircraft", "AircraftSettings"},
     {"AMBE", "AMBESettings"},
     {"AntennaTools", "AntennaToolsSettings"},
     {"APRS", "APRSSettings"},
@@ -367,6 +374,7 @@ const QMap<QString, QString> WebAPIUtils::m_featureTypeToSettingsKey = {
 
 const QMap<QString, QString> WebAPIUtils::m_featureTypeToActionsKey = {
     {"AFC", "AFCActions"},
+    {"Aircraft", "AircraftActions"},
     {"AMBE", "AMBEActions"},
     {"GS232Controller", "GS232ControllerActions"},
     {"LimeRFE", "LimeRFEActions"},
@@ -386,6 +394,7 @@ const QMap<QString, QString> WebAPIUtils::m_featureTypeToActionsKey = {
 const QMap<QString, QString> WebAPIUtils::m_featureURIToSettingsKey = {
     {"sdrangel.feature.afc", "AFCSettings"},
     {"sdrangel.feature.ais", "AISSSettings"},
+    {"sdrangel.feature.aircraft", "AircraftSettings"},
     {"sdrangel.feature.ambe", "AMBESSettings"},
     {"sdrangel.feature.antennatools", "AntennaToolsSettings"},
     {"sdrangel.feature.aprs", "APRSSettings"},

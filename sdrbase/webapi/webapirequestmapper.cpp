@@ -4853,7 +4853,13 @@ bool WebAPIRequestMapper::getChannelSettings(
             << " channelSettingsKey: " << channelSettingsKey
             << " channelSettingsKeys: " << channelSettingsKeys;
 
-        if (channelSettingsKey == "ADSBDemodSettings")
+        if (channelSettingsKey == "ACARSDemodSettings")
+        {
+            channelSettings->setAcarsDemodSettings(new SWGSDRangel::SWGACARSDemodSettings());
+            channelSettings->getAcarsDemodSettings()->init();
+            channelSettings->getAcarsDemodSettings()->fromJsonObject(settingsJsonObject);
+        }
+        else if (channelSettingsKey == "ADSBDemodSettings")
         {
             channelSettings->setAdsbDemodSettings(new SWGSDRangel::SWGADSBDemodSettings());
             channelSettings->getAdsbDemodSettings()->init();
@@ -5007,6 +5013,12 @@ bool WebAPIRequestMapper::getChannelSettings(
             channelSettings->setDroneIdDemodSettings(new SWGSDRangel::SWGDroneIDDemodSettings());
             channelSettings->getDroneIdDemodSettings()->init();
             channelSettings->getDroneIdDemodSettings()->fromJsonObject(settingsJsonObject);
+        }
+        else if (channelSettingsKey == "DSEModSettings")
+        {
+            channelSettings->setDseModSettings(new SWGSDRangel::SWGDSEModSettings());
+            channelSettings->getDseModSettings()->init();
+            channelSettings->getDseModSettings()->fromJsonObject(settingsJsonObject);
         }
         else if (channelSettingsKey == "EndOfTrainDemodSettings")
         {
@@ -5220,9 +5232,9 @@ bool WebAPIRequestMapper::getChannelSettings(
         }
         else if (channelSettingsKey == "PSK31DemodSettings")
         {
-            channelSettings->setPSK31DemodSettings(new SWGSDRangel::SWGPSK31DemodSettings());
-            channelSettings->getPSK31DemodSettings()->init();
-            channelSettings->getPSK31DemodSettings()->fromJsonObject(settingsJsonObject);
+            channelSettings->setPsk31DemodSettings(new SWGSDRangel::SWGPSK31DemodSettings());
+            channelSettings->getPsk31DemodSettings()->init();
+            channelSettings->getPsk31DemodSettings()->fromJsonObject(settingsJsonObject);
         }
         else if (channelSettingsKey == "RTTYModSettings")
         {
@@ -5340,6 +5352,16 @@ bool WebAPIRequestMapper::getChannelActions(
         {
             channelActions->setDrmDemodActions(new SWGSDRangel::SWGDRMDemodActions());
             channelActions->getDrmDemodActions()->fromJsonObject(actionsJsonObject);
+        }
+        else if (channelActionsKey == "DSDDemodActions")
+        {
+            channelActions->setDsdDemodActions(new SWGSDRangel::SWGDSDDemodActions());
+            channelActions->getDsdDemodActions()->fromJsonObject(actionsJsonObject);
+        }
+        else if (channelActionsKey == "DSEModActions")
+        {
+            channelActions->setDseModActions(new SWGSDRangel::SWGDSEModActions());
+            channelActions->getDseModActions()->fromJsonObject(actionsJsonObject);
         }
         else if (channelActionsKey == "FileSinkActions")
         {
@@ -5775,6 +5797,12 @@ bool WebAPIRequestMapper::getFeatureSettings(
             featureSettings->setAisSettings(new SWGSDRangel::SWGAISSettings());
             featureSettings->getAisSettings()->fromJsonObject(settingsJsonObject);
         }
+        else if (featureSettingsKey == "AircraftSettings")
+        {
+            featureSettings->setAircraftSettings(new SWGSDRangel::SWGAircraftSettings());
+            featureSettings->getAircraftSettings()->init();     // fromJsonObject() fills the lists init() allocates
+            featureSettings->getAircraftSettings()->fromJsonObject(settingsJsonObject);
+        }
         else if (featureSettingsKey == "AntennaToolsSettings")
         {
             featureSettings->setAntennaToolsSettings(new SWGSDRangel::SWGAntennaToolsSettings());
@@ -5904,6 +5932,11 @@ bool WebAPIRequestMapper::getFeatureActions(
         {
             featureActions->setAfcActions(new SWGSDRangel::SWGAFCActions());
             featureActions->getAfcActions()->fromJsonObject(actionsJsonObject);
+        }
+        else if (featureActionsKey == "AircraftActions")
+        {
+            featureActions->setAircraftActions(new SWGSDRangel::SWGAircraftActions());
+            featureActions->getAircraftActions()->fromJsonObject(actionsJsonObject);
         }
         else if (featureActionsKey == "AMBEActions")
         {
@@ -6103,6 +6136,7 @@ void WebAPIRequestMapper::resetChannelSettings(SWGSDRangel::SWGChannelSettings& 
 {
     channelSettings.cleanup();
     channelSettings.setChannelType(nullptr);
+    channelSettings.setAcarsDemodSettings(nullptr);
     channelSettings.setAdsbDemodSettings(nullptr);
     channelSettings.setAisDemodSettings(nullptr);
     channelSettings.setAisModSettings(nullptr);
@@ -6110,6 +6144,7 @@ void WebAPIRequestMapper::resetChannelSettings(SWGSDRangel::SWGChannelSettings& 
     channelSettings.setAmModSettings(nullptr);
     channelSettings.setAptDemodSettings(nullptr);
     channelSettings.setWefaxDemodSettings(nullptr);
+    channelSettings.setAtvDemodSettings(nullptr);
     channelSettings.setAtvModSettings(nullptr);
     channelSettings.setBfmDemodSettings(nullptr);
     channelSettings.setBfmModSettings(nullptr);
@@ -6157,12 +6192,14 @@ void WebAPIRequestMapper::resetChannelReport(SWGSDRangel::SWGChannelReport& chan
 {
     channelReport.cleanup();
     channelReport.setChannelType(nullptr);
+    channelReport.setAcarsDemodReport(nullptr);
     channelReport.setAdsbDemodReport(nullptr);
     channelReport.setAisDemodReport(nullptr);
     channelReport.setAisModReport(nullptr);
     channelReport.setAmDemodReport(nullptr);
     channelReport.setWefaxDemodReport(nullptr);
     channelReport.setAmModReport(nullptr);
+    channelReport.setAtvDemodReport(nullptr);
     channelReport.setAtvModReport(nullptr);
     channelReport.setBfmDemodReport(nullptr);
     channelReport.setBfmModReport(nullptr);
@@ -6209,6 +6246,8 @@ void WebAPIRequestMapper::resetChannelActions(SWGSDRangel::SWGChannelActions& ch
     channelActions.setWefaxDemodActions(nullptr);
     channelActions.setChannelType(nullptr);
     channelActions.setDrmDemodActions(nullptr);
+    channelActions.setDsdDemodActions(nullptr);
+    channelActions.setDseModActions(nullptr);
     channelActions.setFileSourceActions(nullptr);
     channelActions.setFreqScannerActions(nullptr);
     channelActions.setIeee802154ModActions(nullptr);
@@ -6235,6 +6274,7 @@ void WebAPIRequestMapper::resetFeatureSettings(SWGSDRangel::SWGFeatureSettings& 
 {
     featureSettings.cleanup();
     featureSettings.setFeatureType(nullptr);
+    featureSettings.setAircraftSettings(nullptr);
     featureSettings.setAisSettings(nullptr);
     featureSettings.setAntennaToolsSettings(nullptr);
     featureSettings.setAprsSettings(nullptr);
@@ -6257,6 +6297,7 @@ void WebAPIRequestMapper::resetFeatureReport(SWGSDRangel::SWGFeatureReport& feat
     featureReport.cleanup();
     featureReport.setFeatureType(nullptr);
     featureReport.setAfcReport(nullptr);
+    featureReport.setAircraftReport(nullptr);
     featureReport.setFreqDisplayReport(nullptr);
     featureReport.setGs232ControllerReport(nullptr);
     featureReport.setPerTesterReport(nullptr);
@@ -6275,6 +6316,7 @@ void WebAPIRequestMapper::resetFeatureActions(SWGSDRangel::SWGFeatureActions& fe
     featureActions.cleanup();
     featureActions.setFeatureType(nullptr);
     featureActions.setAfcActions(nullptr);
+    featureActions.setAircraftActions(nullptr);
     featureActions.setGs232ControllerActions(nullptr);
     featureActions.setMapActions(nullptr);
     featureActions.setPerTesterActions(nullptr);

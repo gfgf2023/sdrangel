@@ -228,7 +228,7 @@ void DSPDeviceSinkEngine::workSamples(SampleVector& data, unsigned int iBegin, u
                     FixReal nom = m_sumIndex;     // so that final sum is scaled by N (number of channels)
 					FixReal x = a.real()/den + nom*(b.real()/den);
 					FixReal y = a.imag()/den + nom*(b.imag()/den);
-                    return Sample{x, y};
+                    return Sample(x, y);
                 }
             );
         }
@@ -384,9 +384,11 @@ DSPDeviceSinkEngine::State DSPDeviceSinkEngine::gotoRunning()
 
 DSPDeviceSinkEngine::State DSPDeviceSinkEngine::gotoError(const QString& errorMessage)
 {
-	qDebug() << "DSPDeviceSinkEngine::gotoError";
+	QString message = QString("T:%1: %2").arg(getUID()).arg(errorMessage);
 
-	m_errorMessage = errorMessage;
+	qDebug() << "DSPDeviceSinkEngine::gotoError: " << message;
+
+	m_errorMessage = message;
 	m_deviceDescription.clear();
 	setState(State::StError);
 	return State::StError;

@@ -108,7 +108,7 @@ elseif(LINUX AND BUNDLE)
     set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
     set(CPACK_DEBIAN_PACKAGE_MAINTAINER "${APPLICATION_MAINTAINER}")
     set(CPACK_DEBIAN_PACKAGE_SECTION "hamradio")
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6, libasound2, libfftw3-single3, libgcc1, libgl1-mesa-glx, libqt5core5a, libqt5gui5, libqt5websockets5, libqt5multimedia5, libqt5network5, libqt5opengl5, libqt5widgets5, libqt5multimedia5-plugins, libstdc++6, libusb-1.0-0, pulseaudio, libxml2, ffmpeg, libopus0, codec2, libairspy0, libhackrf0, librtlsdr0, libbladerf1, libmirisdr0, libiio0")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6, libasound2, libfftw3-single3, libgcc1, libgl1-mesa-glx, libqt5core5a, libqt5gui5, libqt5websockets5, libqt5multimedia5, libqt5network5, libqt5opengl5, libqt5widgets5, libqt5multimedia5-plugins, libstdc++6, libusb-1.0-0, pulseaudio, libxml2, ffmpeg, libopus0, codec2, libairspy0, libhackrf0, librtlsdr0, libbladerf1, libmirisdr5, libiio0")
 
     if ("${LSB_CODENAME}" STREQUAL "buster") # Debian 10
       set(CPACK_DEBIAN_PACKAGE_DEPENDS "${CPACK_DEBIAN_PACKAGE_DEPENDS}, libavcodec58, libavformat58, libairspyhf1, libopencv-imgproc3.2, libopencv-highgui3.2, limesuite, soapysdr-tools")
@@ -142,6 +142,19 @@ elseif(WIN32 OR MINGW)
 
   # unfortunately some libraries are dependencies of dll so we copy by hand
   # TODO check if we can use fixup_bundle() and have libraries on root path
+
+  # Wintun is loaded dynamically, so BundleUtilities cannot discover it as a
+  # dependency. Install the target-architecture DLL and its license explicitly.
+  get_property(SDRANGEL_WINTUN_DLL GLOBAL PROPERTY SDRANGEL_WINTUN_DLL)
+  if(SDRANGEL_WINTUN_DLL)
+    install(FILES "${SDRANGEL_WINTUN_DLL}"
+      DESTINATION "${INSTALL_BIN_DIR}"
+      COMPONENT Runtime)
+    install(FILES "${CMAKE_SOURCE_DIR}/external/windows/wintun/LICENSE.txt"
+      DESTINATION "${INSTALL_DOC_DIR}"
+      RENAME Wintun-LICENSE.txt
+      COMPONENT Runtime)
+  endif()
 
   # demoddatv.dll
   file(GLOB FFMPEG_DLLS "${FFMPEG_LIBRARIES}/*${CMAKE_SHARED_LIBRARY_SUFFIX}")
@@ -206,6 +219,14 @@ elseif(WIN32 OR MINGW)
     )
   endforeach(hidapi_dll)
 
+  file(GLOB ACARS_DLLS "${LIBACARS_DLL_DIR}/acars*${CMAKE_SHARED_LIBRARY_SUFFIX}")
+  foreach(acars_dll ${ACARS_DLLS})
+    get_filename_component(acars_dll_name "${acars_dll}"  NAME)
+    add_custom_target(copy_acars_${acars_dll_name} ALL
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different "${acars_dll}" "${SDRANGEL_BINARY_BIN_DIR}/"
+    )
+  endforeach(acars_dll)
+
   if(ENABLE_USRP AND UHD_FOUND)
     file(GLOB UHD_DLLS "${UHD_DLL_DIR}/*${CMAKE_SHARED_LIBRARY_SUFFIX}")
     foreach(uhd_dll ${UHD_DLLS})
@@ -259,7 +280,7 @@ elseif(WIN32 OR MINGW)
   if(BUILD_GUI)
     install(CODE "
       include(BundleUtilities)
-      # BundleUtilities.cmake verify_app fails unless we ignore QtWebEngineProcess.exe, as it fails if there are any " external " prerequisites
+      # BundleUtilities.cmake verify_app fails unless we ignore QtWebEngineProcess.exe, as it fails if there are any external prerequisites
       # Should we ignore it? It appears to work OK if we do. Is there a better way?
       fixup_bundle(\"${SDRANGEL_BINARY_BIN_DIR}/sdrangel${CMAKE_EXECUTABLE_SUFFIX}\" \"\" \"${WINDOWS_FIXUP_BUNDLE_LIB_DIRS}\" IGNORE_ITEM \"QtWebEngineProcess.exe\")
     " COMPONENT Runtime)
@@ -302,6 +323,9 @@ elseif(WIN32 OR MINGW)
     # hidapi
     install(DIRECTORY "${HIDAPI_DLL_DIR}/" DESTINATION "${INSTALL_LIB_DIR}"
       FILES_MATCHING PATTERN "*${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    # acars
+    install(DIRECTORY "${LIBACARS_DLL_DIR}/" DESTINATION "${INSTALL_LIB_DIR}"
+      FILES_MATCHING PATTERN "acars*${CMAKE_SHARED_LIBRARY_SUFFIX}")
     # uhd
     install(DIRECTORY "${UHD_DLL_DIR}/" DESTINATION "${INSTALL_LIB_DIR}"
       FILES_MATCHING PATTERN "*${CMAKE_SHARED_LIBRARY_SUFFIX}")
